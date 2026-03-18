@@ -26,14 +26,14 @@ status                  VARCHAR(11)   -- 'Active' or 'Inactive'
 
 ### Currency types
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="Fiat" icon="money-bill">
     Standard national currencies (USD, EUR, GBP, etc.). Balances are stored with 8 decimal places but displayed according to the currency's decimal format. Exchange rates are maintained manually or fetched from an external API depending on `exchange_from`.
   </Card>
   <Card title="Crypto asset" icon="bitcoin-sign">
     Cryptocurrency assets (BTC, ETH, LTC, DOGE, etc.). Identified by `type = 'crypto_asset'`. Crypto currencies can optionally have on-chain wallet addresses generated via the Block.io module. Fees for crypto transactions use only the `charge_fixed` component.
   </Card>
-</Columns>
+</CardGroup>
 
 ### Exchange rates
 

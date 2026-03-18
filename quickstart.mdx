@@ -48,7 +48,7 @@ This guide walks you through cloning the repository, configuring the environment
     ```
 
     <Info>
-      Set `APP_INSTALL=true` so the application bootstraps transaction type and payment method constants on startup. Without this, the platform will not function correctly.
+      Add `APP_INSTALL=true` to your `.env` file (it is not in `.env.example` by default). Without this, the `AppServiceProvider` will not bootstrap the transaction type and payment method constants, and the platform will not function correctly.
     </Info>
   </Step>
 
@@ -132,7 +132,7 @@ This guide walks you through cloning the repository, configuring the environment
 
 ## What's next
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="Installation" icon="server" href="/installation">
     Full server requirements, nginx/Apache configuration, and queue worker setup.
   </Card>
@@ -145,4 +145,4 @@ This guide walks you through cloning the repository, configuring the environment
   <Card title="Transaction types" icon="arrow-right-arrow-left" href="/concepts/transaction-types">
     Explore all twelve transaction types and how the fee system works.
   </Card>
-</Columns>
+</CardGroup>

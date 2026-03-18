@@ -7,7 +7,7 @@ description: "How DossPanels is structured: three tiers, the module system, and 
 
 DossPanels is a single Laravel 10 application that exposes three distinct entry points, each serving a different audience.
 
-<Columns cols={3}>
+<CardGroup cols={3}>
   <Card title="User web app" icon="globe">
     The customer-facing dashboard at `/`. Users manage wallets, initiate transfers, deposits, withdrawals, exchanges, and payment requests. Rendered with Blade templates and real-time updates via Pusher.
   </Card>
@@ -17,7 +17,7 @@ DossPanels is a single Laravel 10 application that exposes three distinct entry 
   <Card title="REST API" icon="code">
     Two versioned API route groups defined in `routes/api.php` and `routes/api_v2.php`. The API is consumed by mobile applications and third-party integrations. Authentication uses Laravel Passport (OAuth2) tokens.
   </Card>
-</Columns>
+</CardGroup>
 
 ### Route organisation
 

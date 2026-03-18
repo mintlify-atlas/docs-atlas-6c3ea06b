@@ -77,7 +77,27 @@ POST /api/get-currencies-exchange-rate
   </Expandable>
 </ResponseField>
 
-## Step 5 — Review exchange details
+## Step 5a — Quick exchange review
+
+```
+POST /api/exchange-review
+```
+
+An alternative simplified review endpoint. Returns a summary of the exchange with rate and fees applied.
+
+<ParamField body="from_currency_id" type="integer" required>
+  Source currency ID.
+</ParamField>
+
+<ParamField body="to_currency_id" type="integer" required>
+  Destination currency ID.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to exchange.
+</ParamField>
+
+## Step 5b — Detailed exchange review
 
 ```
 POST /api/review-exchange-details

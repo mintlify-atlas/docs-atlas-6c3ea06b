@@ -1,97 +1,63 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "DossPanels"
+description: "Full-featured fintech SaaS platform for digital payments, money transfers, merchant management, and multi-currency wallets."
 ---
 
-## Setting up
+## Welcome to DossPanels
 
-Get your documentation site up and running in minutes.
+DossPanels is a comprehensive Laravel-based digital payment platform that enables businesses and individuals to manage financial transactions, process payments, and hold multi-currency wallets — all through a single unified platform.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get DossPanels running and make your first transaction.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Installation" icon="server" href="/installation">
+    Full server requirements, nginx/Apache config, and queue workers.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="User Guide" icon="user" href="/user-guide/registration">
+    Learn how to register, send money, deposit funds, and more.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="API Reference" icon="code" href="/api/authentication">
+    REST API secured with Laravel Passport OAuth2.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Platform capabilities
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="Multi-currency wallets" icon="wallet">
+    Users hold balances in multiple currencies simultaneously, with real-time conversion rates and instant transfers between wallets.
+  </Card>
+  <Card title="Payment processing" icon="credit-card">
+    Accept deposits via bank transfer, Stripe, PayPal, and CoinPayments (crypto). Process withdrawals through configurable payout methods.
+  </Card>
+  <Card title="Merchant tools" icon="store">
+    Generate QR codes, accept merchant payments, issue invoices, and manage merchant groups with granular fee configurations.
+  </Card>
+  <Card title="Admin panel" icon="shield">
+    Full administrative control over users, merchants, currencies, fees, and permissions through a dedicated admin dashboard.
+  </Card>
+  <Card title="Mobile API" icon="mobile">
+    Complete REST API secured with Laravel Passport OAuth2, enabling mobile app integration for all user-facing features.
+  </Card>
+  <Card title="Security & compliance" icon="lock">
+    Google 2FA, KYC verification (identity and address proof), and role-based access control throughout.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Getting started
 
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Steps>
+  <Step title="Set up the server">
+    Follow the [installation guide](/installation) to deploy DossPanels with PHP 8.1+, MySQL, Redis, and a web server.
+  </Step>
+  <Step title="Configure the platform">
+    Set up currencies, payment methods, and fee structures in the admin panel at `/admin`.
+  </Step>
+  <Step title="Register your first user">
+    Walk through [user registration](/user-guide/registration) and understand the KYC verification flow.
+  </Step>
+  <Step title="Integrate the API">
+    If building a mobile app, start with [API authentication](/api/authentication) to obtain a Bearer token.
+  </Step>
+</Steps>
