@@ -1,0 +1,127 @@
+---
+title: "Modules & Addons"
+description: "Understand the DossPanels module system, manage installed addons, enable or disable modules, and install new addons."
+---
+
+DossPanels is built on the [nwidart/laravel-modules](https://nwidart.com/laravel-modules/) package. Features like crypto providers, referral programmes, and payment gateways are packaged as self-contained modules (also called **addons**) that can be installed, enabled, or disabled independently.
+
+## Viewing Installed Modules
+
+Navigate to **Addon Manager** (`/admin/addon-manager`). The page lists all modules discovered in the `Modules/` directory.
+
+The core modules bundled with DossPanels include:
+
+| Module | Alias | Description |
+|---|---|---|
+| Addons | `addons` | Core addon management system |
+| BlockIo | `blockio` | BlockIo crypto wallet provider |
+| Upgrader | `upgrader` | Platform upgrade management |
+
+Additional addons (Referral, CoinPayments, Mobile Money, etc.) can be purchased and installed separately.
+
+## Enabling and Disabling Modules
+
+Modules can be toggled on or off without uninstalling them. This is useful for temporarily disabling a feature:
+
+<Steps>
+  <Step title="Open the Addon Manager">
+    Go to `/admin/addon-manager`.
+  </Step>
+  <Step title="Locate the module">
+    Find the module in the list.
+  </Step>
+  <Step title="Toggle the status">
+    Click the enable/disable toggle. When a module is disabled, its routes, views, and service providers are no longer loaded by the Laravel application.
+  </Step>
+</Steps>
+
+<Note>
+  The `module()` helper function is used throughout DossPanels to check if a module is active before executing module-specific code. For example: `if (module('Referral') && settings('referral_enabled') == 'Yes')`.
+</Note>
+
+## Installing a New Addon
+
+Addons are distributed as ZIP archives. The `AddonManager` class handles extraction and validation.
+
+<Steps>
+  <Step title="Obtain the addon ZIP">
+    Purchase or download the addon ZIP file from the provider. Ensure it is the correct version for your DossPanels installation.
+  </Step>
+  <Step title="Upload via the Addon Manager">
+    On the Addon Manager page, use the upload form to select the ZIP file.
+  </Step>
+  <Step title="Validation">
+    The system extracts the ZIP to a temporary directory and validates that the following files exist:
+    - `Config/config.php`
+    - `Providers/{ModuleName}ServiceProvider.php`
+    - `Providers/RouteServiceProvider.php`
+    - `Routes/api.php`
+    - `Routes/web.php`
+    - `module.json` (must contain `name` and `item_id` keys)
+  </Step>
+  <Step title="Copy to Modules directory">
+    If validation passes, the module files are copied from the temp directory to `Modules/`. The temporary directory is cleaned up.
+  </Step>
+  <Step title="Run migrations and seeds">
+    After upload, trigger database setup by running:
+    ```bash
+    php artisan module:migrate {ModuleName}
+    php artisan module:seed {ModuleName}
+    ```
+    This is also available via the **Migrate & Seed** button in the Addon Manager UI, which calls `module:migrate-rollback`, `module:migrate`, and `module:seed` in sequence.
+  </Step>
+</Steps>
+
+<Warning>
+  The Migrate & Seed process runs `module:migrate-rollback` first, which drops the module's tables before re-creating them. Do not run this on a production module that already has live data unless you have a current backup.
+</Warning>
+
+## Installing via Composer
+
+For modules distributed via private Composer repositories (such as the core Addons module):
+
+```bash
+# Step 1: Register the repository
+composer config repositories.addons-module git https://bitbucket.org/techvillage/addons-module/src/master.git
+
+# Step 2: Require the package
+composer require techvillage/addons-module
+```
+
+After composer install, run the module migrations as described above.
+
+## Module Structure
+
+Every DossPanels addon follows the standard Laravel Modules directory layout:
+
+```
+Modules/{ModuleName}/
+  Config/
+    config.php          # Module configuration
+  Entities/             # Models and business logic
+  Http/
+    Controllers/        # Module-specific controllers
+  Providers/
+    {Name}ServiceProvider.php
+    RouteServiceProvider.php
+  Routes/
+    api.php
+    web.php
+  Resources/
+    views/              # Blade templates
+  module.json           # Module manifest (name, alias, version, providers)
+```
+
+The `module.json` manifest identifies the module to the framework:
+
+```json
+{
+  "name": "Addons",
+  "alias": "addons",
+  "core": true,
+  "version": "1.0",
+  "providers": [
+    "Modules\\Addons\\Providers\\AddonsServiceProvider"
+  ]
+}
+```

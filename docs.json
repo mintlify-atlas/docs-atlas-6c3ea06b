@@ -1,122 +1,148 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "DossPanels",
+  "theme": "linden",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#040404",
+    "light": "#ef370f",
+    "dark": "#f79d72"
   },
   "favicon": "/favicon.svg",
+  "logo": {
+    "light": "https://media.brand.dev/69d705f4-5e9b-4d51-bd5f-4788b2d5c4d2.svg",
+    "dark": "https://media.brand.dev/69d705f4-5e9b-4d51-bd5f-4788b2d5c4d2.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/smonderoy/dosspanels"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/smonderoy/dosspanels"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Overview",
         "groups": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "installation"]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "concepts/architecture",
+              "concepts/user-roles",
+              "concepts/wallets-currencies",
+              "concepts/transaction-types"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "User Guide",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Account Management",
             "pages": [
-              "api-reference/introduction"
+              "user-guide/registration",
+              "user-guide/profile",
+              "user-guide/kyc-verification",
+              "user-guide/two-factor-auth"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Payments & Transfers",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "user-guide/send-money",
+              "user-guide/request-money",
+              "user-guide/deposit",
+              "user-guide/withdrawal",
+              "user-guide/exchange-currency"
+            ]
+          },
+          {
+            "group": "Merchant Features",
+            "pages": [
+              "user-guide/merchant-payments",
+              "user-guide/qr-codes",
+              "user-guide/invoices"
+            ]
+          },
+          {
+            "group": "Other Features",
+            "pages": [
+              "user-guide/disputes",
+              "user-guide/support-tickets",
+              "user-guide/notifications"
             ]
           }
         ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
+      },
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "tab": "Admin Guide",
+        "groups": [
+          {
+            "group": "Admin Panel",
+            "pages": [
+              "admin/dashboard",
+              "admin/user-management",
+              "admin/merchant-management"
+            ]
+          },
+          {
+            "group": "Finance & Settings",
+            "pages": [
+              "admin/currencies",
+              "admin/fees-limits",
+              "admin/payment-methods",
+              "admin/crypto-providers"
+            ]
+          },
+          {
+            "group": "System",
+            "pages": [
+              "admin/roles-permissions",
+              "admin/modules",
+              "admin/email-sms-templates",
+              "admin/activity-logs",
+              "admin/backups"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": ["api/authentication", "api/registration"]
+          },
+          {
+            "group": "Profile",
+            "pages": ["api/profile"]
+          },
+          {
+            "group": "Transactions",
+            "pages": [
+              "api/transactions",
+              "api/send-money",
+              "api/request-money",
+              "api/deposit",
+              "api/withdrawal",
+              "api/exchange"
+            ]
+          },
+          {
+            "group": "Merchant",
+            "pages": ["api/merchant-payments", "api/qr-codes"]
+          }
+        ]
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

@@ -1,0 +1,125 @@
+---
+title: "Payment Methods"
+description: "Enable and configure payment gateways including Bank, Stripe, PayPal, and CoinPayments for each currency."
+---
+
+Payment methods in DossPanels are configured per-currency. Each currency can have different gateways enabled for deposits and withdrawals. Configuration is done under **Settings → Currencies → [Currency] → Payment Methods** tab.
+
+The URL pattern is `/admin/settings/payment-methods/{method}/{currency_id}`.
+
+## Available Payment Methods
+
+| Method | Name in DB | Description |
+|---|---|---|
+| Bank Transfer | `Bank` | Manual bank transfer with admin-defined bank accounts |
+| Stripe | `Stripe` | Credit/debit card payments via Stripe API |
+| PayPal | `Paypal` | PayPal checkout integration |
+| CoinPayments | `Coinpayments` | Cryptocurrency deposit/withdrawal via CoinPayments |
+| PayU Money | `Payumoney` | PayU payment gateway |
+| Payeer | `Payeer` | Payeer wallet integration |
+| Mobile Money | `MobileMoney` | Mobile money network payments |
+| MTS | `Mts` | Internal transfer method used for admin-initiated deposits and withdrawals |
+
+## Enabling a Payment Method for a Currency
+
+<Steps>
+  <Step title="Navigate to the payment method tab">
+    Go to **Settings → Currencies**, click the currency, and select the payment method tab (e.g., **Stripe**, **Paypal**, **Bank**).
+  </Step>
+  <Step title="Configure credentials">
+    Enter the required API keys or bank details (see sections below).
+  </Step>
+  <Step title="Set the activated transaction types">
+    Check which transaction types this method should support: **Deposit**, **Withdrawal**, or both.
+  </Step>
+  <Step title="Save">
+    Click **Save**. A `currency_payment_methods` record is created or updated linking the currency, method, credentials, and activated transaction types.
+  </Step>
+</Steps>
+
+## Stripe Configuration
+
+To accept card payments via Stripe:
+
+| Field | Description |
+|---|---|
+| Publishable Key | Your Stripe publishable API key (`pk_live_...` or `pk_test_...`) |
+| Secret Key | Your Stripe secret API key (`sk_live_...` or `sk_test_...`) |
+
+<Warning>
+  Never share your Stripe Secret Key. It grants full access to your Stripe account. Store it only in the DossPanels admin settings and your server environment.
+</Warning>
+
+## PayPal Configuration
+
+To accept PayPal payments:
+
+| Field | Description |
+|---|---|
+| Client ID | Your PayPal REST API client ID |
+| Client Secret | Your PayPal REST API secret |
+| Mode | `sandbox` for testing, `live` for production |
+
+## Bank Payment Configuration
+
+Bank transfer requires adding one or more bank accounts. Each bank account has the following fields:
+
+| Field | Required | Description |
+|---|---|---|
+| Account Name | Yes | Name on the bank account |
+| Account Number | Yes | Bank account number |
+| Swift Code | Yes | SWIFT/BIC code of the bank |
+| Bank Name | Yes | Name of the bank |
+| Branch Name | Yes | Branch name |
+| Branch City | Yes | City where the branch is located |
+| Branch Address | Yes | Physical address of the branch |
+| Country | Yes | Country of the bank |
+| Bank Logo | No | Logo image for display |
+| Default | No | Mark as the primary bank for this currency |
+
+### Adding a Bank Account
+
+<Steps>
+  <Step title="Open the Bank tab for the currency">
+    Go to **Settings → Currencies → [Currency] → Bank**.
+  </Step>
+  <Step title="Click Add Bank">
+    Fill in all required fields and upload a logo if desired.
+  </Step>
+  <Step title="Set transaction types">
+    Select whether this bank account is used for **Deposit**, **Withdrawal**, or both.
+  </Step>
+  <Step title="Save">
+    The bank record and a corresponding `currency_payment_methods` entry are created.
+  </Step>
+</Steps>
+
+<Warning>
+  A bank account that has been used in a transaction cannot be deleted. The system checks for existing transactions before allowing deletion.
+</Warning>
+
+## CoinPayments Configuration
+
+CoinPayments is used for crypto deposit and withdrawal. API credentials are stored in `CurrencyPaymentMethod.method_data`. Refer to [Crypto Providers](/admin/crypto-providers) for provider-level configuration.
+
+## Mobile Money Configuration
+
+Mobile Money accounts require:
+
+| Field | Description |
+|---|---|
+| Holder Name | Name of the account holder |
+| Merchant Code | Mobile money merchant code |
+| Mobile Money Name | Provider name (e.g., M-Pesa) |
+| Mobile Money Number | Account number |
+| Country | Country of operation |
+
+Multiple mobile money accounts can be added per currency.
+
+<Warning>
+  A mobile money account that has been used in a transaction cannot be deleted.
+</Warning>
+
+## Processing Time
+
+Each `currency_payment_methods` record has an optional **Processing Time** field. The value (e.g., `1-2 business days`) is shown to users when they initiate a transaction with that method.

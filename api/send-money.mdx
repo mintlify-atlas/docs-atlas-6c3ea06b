@@ -1,0 +1,164 @@
+---
+title: "Send Money"
+description: "Transfer funds to another DossPanels user via the API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+Sending money follows a multi-step flow:
+1. Look up the recipient by email or phone
+2. Select currency and enter amount to get fee preview
+3. Confirm and submit the transfer
+
+## Step 1 — Find recipient
+
+### By email
+
+```
+POST /api/send-money-email-check
+```
+
+<ParamField body="email" type="string" required>
+  Email address of the intended recipient.
+</ParamField>
+
+Returns recipient details if found, or an error if no matching user exists.
+
+### By phone
+
+```
+POST /api/send-money-phone-check
+```
+
+<ParamField body="phone" type="string" required>
+  Phone number of the intended recipient.
+</ParamField>
+
+## Step 2 — Get available currencies
+
+```
+GET /api/get-send-money-currencies
+```
+
+Returns the list of currencies the authenticated user can send.
+
+<ResponseField name="data" type="array">
+  Array of currency objects with `id`, `code`, `symbol`, and current wallet balance.
+</ResponseField>
+
+## Step 3 — Check amount and fees
+
+```
+POST /api/check-send-money-amount-limit
+```
+
+Validates the amount against limits and returns a fee breakdown.
+
+<ParamField body="email" type="string">
+  Recipient email (or use `phone`).
+</ParamField>
+
+<ParamField body="phone" type="string">
+  Recipient phone number (or use `email`).
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency ID to send.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to send (before fees).
+</ParamField>
+
+### Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="Fee breakdown">
+    <ResponseField name="amount" type="string">Base amount</ResponseField>
+    <ResponseField name="charge_percentage" type="string">Percentage fee</ResponseField>
+    <ResponseField name="charge_fixed" type="string">Fixed fee</ResponseField>
+    <ResponseField name="total" type="string">Total deducted from sender wallet</ResponseField>
+    <ResponseField name="currency_code" type="string">Currency code</ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Step 4 — Confirm transfer
+
+```
+POST /api/send-money-pay
+```
+
+<ParamField body="email" type="string">
+  Recipient email.
+</ParamField>
+
+<ParamField body="phone" type="string">
+  Recipient phone.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency ID.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to send.
+</ParamField>
+
+<ParamField body="note" type="string">
+  Optional note to attach to the transfer.
+</ParamField>
+
+<ParamField body="pin" type="string">
+  User's 4-digit transaction PIN (if PIN authentication is enabled).
+</ParamField>
+
+### Response
+
+<ResponseField name="status" type="integer">
+  `200` on success.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Confirmation message.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Transaction object with `uuid`, `total`, `currency_code`, `status`.
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+# Step 1: Check recipient
+curl -X POST https://yourdomain.com/api/send-money-email-check \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "recipient@example.com"}'
+
+# Step 2: Check fees
+curl -X POST https://yourdomain.com/api/check-send-money-amount-limit \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "recipient@example.com", "currency_id": 1, "amount": 100}'
+
+# Step 3: Confirm
+curl -X POST https://yourdomain.com/api/send-money-pay \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "recipient@example.com", "currency_id": 1, "amount": 100, "note": "Lunch split"}'
+```
+</CodeGroup>
+
+## Error responses
+
+| Status | Meaning |
+|--------|---------|
+| `400` | Insufficient balance |
+| `404` | Recipient not found |
+| `422` | Amount below minimum or above maximum limit |
+| `403` | Sending to yourself is not allowed |

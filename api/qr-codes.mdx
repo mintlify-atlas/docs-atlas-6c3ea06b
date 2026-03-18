@@ -1,0 +1,118 @@
+---
+title: "QR Codes"
+description: "Generate and manage personal and merchant QR codes via the DossPanels API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+Every DossPanels user gets a personal QR code at registration. QR codes encode the user or merchant's identity and can be scanned to:
+- Send money to a user
+- Request money from a user
+- Pay a merchant
+
+QR codes are cryptographically encoded and include a secret string for verification.
+
+## Get user QR code
+
+```
+GET /api/get-user-qr-code
+```
+
+Returns the authenticated user's personal QR code.
+
+### Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="QR code fields">
+    <ResponseField name="id" type="integer">QR code record ID</ResponseField>
+    <ResponseField name="user_id" type="integer">Owning user ID</ResponseField>
+    <ResponseField name="secret" type="string">Encoded QR payload string</ResponseField>
+    <ResponseField name="qr_image" type="string">URL to the QR code image</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash cURL
+curl https://yourdomain.com/api/get-user-qr-code \
+  -H "Authorization: Bearer {token}"
+```
+
+## Add or update QR code
+
+```
+POST /api/add-or-update-user-qr-code
+```
+
+Create or regenerate the authenticated user's QR code.
+
+<ParamField body="amount" type="number">
+  Optional preset amount to embed in the QR code. When set, scanning this QR pre-fills the payment amount.
+</ParamField>
+
+<ParamField body="currency_id" type="integer">
+  Currency for the preset amount (required if `amount` is set).
+</ParamField>
+
+### Response
+
+Returns the updated QR code object with new `secret` and `qr_image` URL.
+
+## Perform QR code operation
+
+```
+POST /api/perform-qr-code-operation
+```
+
+Decode a scanned QR code and determine what type of operation it represents (user payment, merchant payment, etc.).
+
+<ParamField body="qr_code" type="string" required>
+  The raw QR code string scanned by the mobile app camera.
+</ParamField>
+
+### Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="QR operation result">
+    <ResponseField name="type" type="string">Operation type: `user`, `merchant`, `express_merchant`</ResponseField>
+    <ResponseField name="user" type="object">User details (for user QR codes)</ResponseField>
+    <ResponseField name="merchant" type="object">Merchant details (for merchant QR codes)</ResponseField>
+    <ResponseField name="preset_amount" type="string">Pre-filled amount if embedded in QR</ResponseField>
+    <ResponseField name="currency" type="object">Pre-filled currency if embedded in QR</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://yourdomain.com/api/perform-qr-code-operation \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"qr_code": "eyJ1c2VyX2lkIjoxMjMsInNlY3JldCI6ImFiY2RlZiJ9"}'
+```
+
+```javascript JavaScript
+const response = await fetch('https://yourdomain.com/api/perform-qr-code-operation', {
+  method: 'POST',
+  headers: {
+    Authorization: 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ qr_code: scannedQrString })
+});
+const result = await response.json();
+// Use result.data.type to route to the correct payment flow
+```
+</CodeGroup>
+
+<Tip>
+After calling `perform-qr-code-operation`, check `data.type` to route to the correct payment flow:
+- `user` → use [Send Money](/api/send-money) or [Request Money](/api/request-money)
+- `merchant` → use [Merchant Payments - Standard](/api/merchant-payments)
+- `express_merchant` → use [Merchant Payments - Express](/api/merchant-payments)
+</Tip>

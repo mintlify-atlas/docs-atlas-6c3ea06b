@@ -1,0 +1,94 @@
+---
+title: "Merchant Payments"
+description: "Set up a merchant account, accept payments from customers, and manage your merchant transactions."
+---
+
+The Merchant module enables you to create a business profile on DossPanel, accept payments from customers, and view detailed payment records. Merchants can also be organized into groups for administrative purposes.
+
+## Becoming a merchant
+
+You can register as a merchant either during initial account creation (by selecting the Merchant account type) or by creating a merchant profile from within an existing user account.
+
+<Steps>
+  <Step title="Open Merchant">
+    Navigate to **Merchant** in the main menu or go to `/merchant`.
+  </Step>
+
+  <Step title="Click Add New Merchant">
+    Click the **Add** button to open the merchant creation form (`/merchant/add`).
+  </Step>
+
+  <Step title="Fill in merchant details">
+    Complete all required fields:
+
+    | Field | Description |
+    |---|---|
+    | Business Name | Unique name for your store (validated for uniqueness) |
+    | Site URL | Your website or payment page URL (must be a valid URL) |
+    | Type | Merchant type as configured by the admin |
+    | Note | Description of your business |
+    | Address | Physical address of the business |
+    | Logo | Optional image file (`jpg`, `jpeg`, `png`, `gif`, `bmp`) |
+    | Currency | Select from active fiat currencies |
+  </Step>
+
+  <Step title="Save the merchant">
+    Submit the form. A QR code may be generated for your merchant profile automatically. The merchant appears in your merchant list.
+  </Step>
+</Steps>
+
+## Merchant payment page
+
+Each merchant has a unique payment URL that customers can visit to pay you. The payment page shows your business name, logo, accepted currency, and a payment form.
+
+Customers can pay using the configured merchant payment methods (e.g. wallet-to-wallet transfer within DossPanel).
+
+## Viewing merchant transactions
+
+<Steps>
+  <Step title="Open merchant payments">
+    From your merchant list, click **Payments** next to a merchant to see all transactions associated with that store.
+  </Step>
+
+  <Step title="Filter and search">
+    Transactions can be searched and filtered by date range, status, and other criteria.
+  </Step>
+
+  <Step title="Export transactions">
+    Use the **Export** button to download merchant payments as an Excel file via `UserMerchantPaymentsExport`.
+  </Step>
+</Steps>
+
+## Merchant cashiers
+
+Merchants can create **Cashier** accounts — sub-users who can accept payments on behalf of the merchant. Cashiers have their own login, a dedicated QR code (`object_type = 'cashier'`), and access only to the cashier dashboard.
+
+<Steps>
+  <Step title="Go to Merchant → Cashiers">
+    From your merchant settings, navigate to the Cashiers section.
+  </Step>
+
+  <Step title="Create a cashier">
+    Provide the cashier's name, email, and password. The cashier account is created with `role_id` set to the cashier role and linked to your merchant (`doss_id`).
+  </Step>
+
+  <Step title="Cashier accepting payments">
+    Cashiers log in and scan customer QR codes or share their own QR code to receive payments. Payments made through a cashier appear in the merchant's transaction history.
+  </Step>
+</Steps>
+
+## Merchant groups
+
+Administrators can group merchants together using `MerchantGroup`. Groups allow batch reporting or applying specific rules to a set of merchants. As a merchant user you can view which group your merchant belongs to from the merchant detail page.
+
+## Exporting cashier and shift data
+
+Merchants with cashier operations can export:
+
+- **Cashier list**: all cashier accounts linked to the merchant via `UserCasheirsExport`.
+- **Cashier payments**: individual cashier transaction history via `EachCashierPaymentsExport`.
+- **Cashier shifts**: shift start/end records via `CashierShiftsExport`.
+
+<Tip>
+Keep your merchant business name unique and descriptive — it is what customers see on the payment page and in their transaction receipts.
+</Tip>

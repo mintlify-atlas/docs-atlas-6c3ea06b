@@ -1,0 +1,78 @@
+---
+title: "Activity Logs"
+description: "Monitor admin and user login activity, filter and search logs, and export audit data."
+---
+
+The activity log records authentication and key system events for every user and admin on the platform. It is the primary audit trail for security monitoring.
+
+## Accessing the Activity Log
+
+Navigate to **Activity Logs** (`/admin/activity-logs`) in the admin sidebar.
+
+Logs are displayed 20 per page, ordered by most recent first.
+
+## What is Logged
+
+Each `activity_logs` record contains:
+
+| Column | Description |
+|---|---|
+| `user_id` | ID of the user or admin who performed the action |
+| `type` | Actor type: `User` or `Admin` |
+| `ip_address` | IP address from which the action was performed |
+| `browser_agent` | User-agent string of the browser/client |
+| `created_at` | Timestamp of the event |
+
+The log is associated with both the `users` table (via the `user` relationship) and the `admins` table (via the `admin` relationship), allowing you to identify whether the actor was an end user or an admin.
+
+## Filtering and Searching Logs
+
+The log list supports the following filters:
+
+| Filter | Description |
+|---|---|
+| **From date** | Start of the date range |
+| **To date** | End of the date range |
+| **User** | Filter by a specific user ID |
+| **Search** | Search by actor name; the system queries both `users` and `admins` tables using `CONCAT(first_name, ' ', last_name) LIKE ?` |
+
+When a date range is provided, only logs within that range are returned. If no date range is set, all logs matching the other filters are returned.
+
+**How name search works:**
+
+1. The search term is matched against the `users` table first.
+2. If no user match is found, it searches the `admins` table.
+3. If no match is found in either table, the query returns no results (using a deliberately impossible ID).
+
+## Exporting Logs
+
+Two export formats are available from the toolbar:
+
+| Format | Route | Notes |
+|---|---|---|
+| XLSX | `/admin/activity-logs/csv` | Downloads as `activity_list_<timestamp>.xlsx` |
+| PDF | `/admin/activity-logs/pdf` | Generates a printable PDF report with the current date range filter applied |
+
+## Security Monitoring
+
+Use the activity log to:
+
+- **Detect brute force attempts** — look for multiple log entries from the same IP address with no corresponding successful login.
+- **Audit admin access** — filter by `type = Admin` to see all admin-level authentication events.
+- **Investigate user reports** — search by username to see the login history and IP addresses associated with a specific account.
+- **Identify unusual access locations** — look for IP addresses that differ significantly from a user's typical geographic region.
+
+<Note>
+  Log entries are created automatically when users and admins authenticate. No manual action is required to start logging — the `ActivityLog::createActivityLog()` method is called from the authentication flow.
+</Note>
+
+## Log Retention
+
+DossPanels does not automatically purge activity logs. All records are retained indefinitely by default. To manage storage:
+
+- Set up a scheduled artisan command or database job to archive or delete logs older than your desired retention period.
+- Consider archiving logs to external storage (e.g., S3) for long-term compliance requirements.
+
+<Warning>
+  Deleting activity logs removes your audit trail permanently. Consult your legal or compliance requirements before purging log data.
+</Warning>

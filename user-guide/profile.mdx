@@ -1,0 +1,104 @@
+---
+title: "Profile"
+description: "View and update your personal information, profile picture, password, phone number, and security settings."
+---
+
+Your profile page is the central place to manage your personal information, change your password, update your phone number, and configure two-step verification preferences.
+
+Navigate to **Profile** from the top navigation or go directly to `/profile`.
+
+## Profile overview
+
+The profile page surfaces the following information at a glance:
+
+- Full name, email address, and registered phone number
+- Current default wallet and currency
+- Your personal QR code (for receiving payments)
+- Two-step verification status
+- KYC / identity verification status
+
+## Updating personal information
+
+<Steps>
+  <Step title="Open the profile page">
+    Click your avatar or username in the top navigation and select **Profile**, or navigate to `/profile`.
+  </Step>
+
+  <Step title="Edit your details">
+    Update fields such as first name, last name, address, city, state, country, and timezone. The available fields are sourced from the `user_details` table and include `address_1`, `address_2`, `city`, `state`, `country_id`, and `timezone`.
+  </Step>
+
+  <Step title="Save changes">
+    Click the **Save** button. A success notification confirms the update.
+  </Step>
+</Steps>
+
+## Uploading a profile picture
+
+<Steps>
+  <Step title="Click on your current avatar">
+    On the profile page, click the profile image area or the upload button to open the file picker.
+  </Step>
+
+  <Step title="Select an image file">
+    Accepted formats: `jpg`, `jpeg`, `png`, `gif`, `bmp`. The file is validated against these extensions before upload.
+  </Step>
+
+  <Step title="Confirm upload">
+    The image is saved to `uploads/user-profile/` and a thumbnail is also stored in `uploads/user-profile/thumb/`. The profile page reloads showing your new avatar.
+  </Step>
+</Steps>
+
+<Note>
+Invalid image formats are rejected with the message *"Invalid Image Format!"*. Make sure your file is a standard JPEG, PNG, GIF, or BMP before uploading.
+</Note>
+
+## Changing your password
+
+<Steps>
+  <Step title="Request an OTP">
+    On the profile page, select the **Change Password** section and click the button to receive a one-time passcode on your registered phone number.
+  </Step>
+
+  <Step title="Enter the OTP">
+    A 6-digit code is dispatched via the `SendOtpCode` job to your `formattedPhone`. Enter all six digits in the verification inputs.
+  </Step>
+
+  <Step title="Set the new password">
+    Once the OTP is verified, enter and confirm your new password. The system hashes the password using `Hash::make()` before storing it. A success message confirms the change.
+  </Step>
+</Steps>
+
+<Warning>
+There is currently no requirement to provide your old password when changing to a new one. Ensure you are using a trusted device and are logged into the correct account before performing this action.
+</Warning>
+
+## Managing your phone number
+
+Your phone number is used for two-step verification, OTP delivery, and peer-to-peer transfers.
+
+<Tabs>
+  <Tab title="Add a phone number">
+    If no phone number is on file, open **Profile → Phone**, enter the number in international format (e.g. `+12015550123`), and click **Save**. If phone verification is enabled, a 6-digit SMS code is sent; enter it to confirm ownership.
+  </Tab>
+
+  <Tab title="Update your phone number">
+    Enter the new number. The system checks it is not already registered to another account. An SMS code is sent to the new number to complete verification.
+  </Tab>
+
+  <Tab title="Remove your phone number">
+    Click **Delete** next to your current phone number. This also clears the stored `phone_verification_code`. Note: removing your phone disables SMS-based two-step verification.
+  </Tab>
+</Tabs>
+
+## Notification preferences
+
+From the profile page you can also adjust whether you receive email or SMS notifications for transaction events. See the [Notifications](/user-guide/notifications) page for full details on the available notification types.
+
+## Two-step verification
+
+The profile page links to the Two-Factor Authentication settings. You can configure the verification type (email, phone/SMS, or Google Authenticator) from **Profile → Security**. For the full setup guide, see [Two-Factor Authentication](/user-guide/two-factor-auth).
+
+## Default wallet
+
+The profile page displays your current default wallet. This wallet is used as the pre-selected currency when initiating transfers, deposits, or exchanges. You can change the default from the wallet section of your profile by selecting a different fiat currency wallet and saving.

@@ -1,0 +1,91 @@
+---
+title: "Registration"
+description: "Create your DossPanel account with email verification and phone OTP confirmation."
+---
+
+Creating a DossPanel account takes just a few minutes. Once registered you will have a wallet in the platform's default currency, a personal QR code, and access to all transfer and payment features.
+
+## Registration form
+
+Navigate to `/register` and fill in the following required fields:
+
+| Field | Requirements |
+|---|---|
+| First Name | Letters and spaces only, max 30 characters |
+| Last Name | Letters and spaces only, max 30 characters |
+| Email | Valid email address — must be unique across all accounts |
+| Phone Number | International format (e.g. `+12015550123`) — must be unique |
+| Password | Minimum-length secure string |
+
+<Note>
+DossPanel checks for duplicate email addresses and duplicate phone numbers in real time as you type. If you see a "taken" message, use a different value.
+</Note>
+
+## Step-by-step walkthrough
+
+<Steps>
+  <Step title="Enter personal information">
+    Go to `/register`. Provide your first name, last name, email address, and password. The platform validates the email for uniqueness immediately. If Google reCAPTCHA is enabled for registrations, you must complete the captcha challenge before proceeding.
+  </Step>
+
+  <Step title="Select account type">
+    After submitting your personal information you are shown the user-type selection screen. Choose **User** to register a standard wallet account, or **Merchant** if you plan to accept payments from customers.
+  </Step>
+
+  <Step title="Provide phone number">
+    Enter your phone number in international format including the country dialling code. DossPanel checks the number for uniqueness and, if SMS is enabled, will send a one-time passcode to confirm ownership.
+  </Step>
+
+  <Step title="Verify your phone (OTP)">
+    You are redirected to `/phoneverify/{uuid}`. Enter the 4-digit OTP sent to your phone. If the code does not arrive, tap **Resend Code** to request a new one. The OTP is tied to your account UUID, so the link is specific to you.
+  </Step>
+
+  <Step title="Verify your email (if enabled)">
+    If email verification is turned on by the administrator, a verification link is sent to your registered email address. Click the link to activate your account. Until you click it you will not be able to log in.
+
+    The confirmation message is: *"We sent you an activation code. Check your email and click on the link to verify."*
+  </Step>
+
+  <Step title="Log in">
+    Once both verifications are complete you are redirected to `/login`. Sign in with your email and password to access your dashboard.
+  </Step>
+</Steps>
+
+## What happens after registration
+
+When your account is created the platform automatically:
+
+- Creates a wallet in the system's **default currency**.
+- Creates additional wallets for any other currencies the administrator has allowed.
+- Generates a unique **personal QR code** so other users can pay you immediately.
+- Transfers any pending money that was sent to your email or phone before you registered.
+- Applies any referral bonus if the referral system is enabled and you arrived via a referral link.
+
+## Duplicate email and phone checks
+
+DossPanel enforces uniqueness at the database level:
+
+- **Email**: checked against `users.email`. An error message `"The email has already been taken!"` is returned if a match exists.
+- **Phone**: checked against `users.phone` combined with `users.carrierCode`. An error message `"The phone number has already been taken!"` is returned if a match exists.
+
+<Warning>
+If you receive a duplicate error but are certain the account is yours, use the password-reset flow at `/forgot-password` to regain access to the existing account rather than creating a new one.
+</Warning>
+
+## Default currency
+
+The wallet currency assigned to new accounts is controlled by the administrator via the **default currency** platform setting. You cannot choose a different currency during registration, but you can add additional currency wallets from your profile after logging in.
+
+## Frequently asked questions
+
+<Accordion title="I didn't receive the phone OTP">
+Tap **Resend Code** on the phone verification screen. The system dispatches a new OTP via the configured SMS gateway (e.g. Twilio). Codes expire, so always use the most recently received one.
+</Accordion>
+
+<Accordion title="I didn't receive the email verification link">
+Check your spam folder first. If the email is missing, log in and look for a resend option on the dashboard. Contact support if the problem persists.
+</Accordion>
+
+<Accordion title="Can I register with the same phone number on two accounts?">
+No. Phone numbers must be unique across all DossPanel accounts. If you need to change the phone number on an existing account, do so from your Profile settings.
+</Accordion>

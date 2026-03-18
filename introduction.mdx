@@ -1,0 +1,89 @@
+---
+title: "Introduction"
+description: "DossPanels is a full-featured fintech SaaS platform for digital payments, money transfers, merchant management, and multi-currency wallets."
+---
+
+## What is DossPanels?
+
+DossPanels is a comprehensive Laravel-based digital payment platform that enables businesses and individuals to manage financial transactions, process payments, and handle multi-currency wallets — all through a single, unified platform.
+
+Whether you're managing end-user payment accounts, running merchant payment operations, or building on top of the mobile API, DossPanels provides the tools and infrastructure to power your financial workflows.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get your DossPanels instance up and running in minutes
+  </Card>
+  <Card title="Installation" icon="server" href="/installation">
+    Full server setup and configuration guide
+  </Card>
+  <Card title="User Guide" icon="user" href="/user-guide/registration">
+    Learn how to use DossPanels as an end user
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/authentication">
+    Integrate with DossPanels via the REST API
+  </Card>
+</CardGroup>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Multi-currency wallets" icon="wallet">
+    Users hold balances in multiple currencies simultaneously, with real-time conversion rates and instant transfers between wallets.
+  </Card>
+  <Card title="Payment processing" icon="credit-card">
+    Accept deposits via bank transfer, Stripe, PayPal, and CoinPayments (crypto). Process withdrawals through configurable payout methods.
+  </Card>
+  <Card title="Merchant tools" icon="store">
+    Generate QR codes, accept merchant payments, issue invoices, and manage merchant groups with granular fee configurations.
+  </Card>
+  <Card title="Admin panel" icon="shield">
+    Full administrative control over users, merchants, currencies, fees, permissions, and system configuration through a dedicated admin dashboard.
+  </Card>
+  <Card title="Mobile API" icon="mobile">
+    Complete REST API secured with Laravel Passport OAuth2, enabling mobile app integration for all user-facing features.
+  </Card>
+  <Card title="Security & compliance" icon="lock">
+    Two-factor authentication (Google 2FA), KYC verification (identity and address proof), and role-based access control throughout.
+  </Card>
+  <Card title="Notifications" icon="bell">
+    Firebase push notifications, Pusher real-time events, Twilio SMS, and email notifications keep users informed at every step.
+  </Card>
+  <Card title="Extensible modules" icon="puzzle-piece">
+    Addon/module system allows extending the platform with additional functionality without modifying the core codebase.
+  </Card>
+</CardGroup>
+
+## Platform architecture
+
+DossPanels is built on Laravel 10 and follows a modular architecture:
+
+- **Web application** — Full-featured dashboard for end users, accessible via browser
+- **Admin panel** — Separate administrative interface for platform operators
+- **REST API** — Mobile-first API secured with Laravel Passport, supporting all user operations
+- **Module system** — Extensible addon framework for adding new capabilities
+
+## Who uses DossPanels?
+
+| Role | Description |
+|------|-------------|
+| **End users** | Individuals who send/receive money, manage wallets, and make payments |
+| **Merchants** | Businesses that accept payments via QR codes and merchant APIs |
+| **Administrators** | Platform operators managing users, currencies, fees, and system settings |
+| **Developers** | Engineers integrating mobile apps or third-party systems via the API |
+
+## Getting started
+
+<Steps>
+  <Step title="Set up the server">
+    Follow the [installation guide](/installation) to deploy DossPanels on your server with the required PHP, database, and cache configuration.
+  </Step>
+  <Step title="Configure the platform">
+    Set up your currencies, payment methods, and fee structures in the admin panel.
+  </Step>
+  <Step title="Onboard your first user">
+    Walk through [user registration](/user-guide/registration) and understand the KYC verification flow.
+  </Step>
+  <Step title="Integrate the API">
+    If building a mobile app, start with [API authentication](/api/authentication) and explore the full endpoint reference.
+  </Step>
+</Steps>

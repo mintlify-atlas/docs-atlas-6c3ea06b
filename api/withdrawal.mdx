@@ -1,0 +1,179 @@
+---
+title: "Withdrawal"
+description: "Withdraw funds from a user wallet via the DossPanels API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+Withdrawals require a **payout setting** — a saved destination (bank account, crypto wallet, etc.) — before a withdrawal can be submitted.
+
+## Payout settings
+
+### List payout settings
+
+```
+GET /api/payout-setting
+```
+
+Returns all saved payout destinations for the authenticated user.
+
+<ResponseField name="data" type="array">
+  <Expandable title="Payout setting fields">
+    <ResponseField name="id" type="integer">Payout setting ID</ResponseField>
+    <ResponseField name="currency_id" type="integer">Currency</ResponseField>
+    <ResponseField name="payment_method_id" type="integer">Payment method</ResponseField>
+    <ResponseField name="account_name" type="string">Account holder name</ResponseField>
+    <ResponseField name="account_number" type="string">Account number</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Add payout setting
+
+```
+POST /api/add-withdraw-setting
+```
+
+<ParamField body="currency_id" type="integer" required>
+  Currency for withdrawals.
+</ParamField>
+
+<ParamField body="payment_method_id" type="integer" required>
+  Payment method (bank, crypto, etc.).
+</ParamField>
+
+<ParamField body="account_name" type="string" required>
+  Account holder name.
+</ParamField>
+
+<ParamField body="account_number" type="string" required>
+  Bank account number or crypto wallet address.
+</ParamField>
+
+<ParamField body="bank_name" type="string">
+  Bank name (for bank withdrawals).
+</ParamField>
+
+<ParamField body="routing_number" type="string">
+  Routing number (for US bank accounts).
+</ParamField>
+
+### Edit payout setting
+
+```
+POST /api/edit-withdraw-setting
+```
+
+Same parameters as add, plus:
+
+<ParamField body="id" type="integer" required>
+  ID of the payout setting to update.
+</ParamField>
+
+### Delete payout setting
+
+```
+POST /api/delete-payout-setting
+```
+
+<ParamField body="id" type="integer" required>
+  ID of the payout setting to delete.
+</ParamField>
+
+### Get withdrawal payment methods
+
+```
+GET /api/get-withdraw-payment-methods
+```
+
+Returns the payment methods available for withdrawal.
+
+---
+
+## Submit a withdrawal
+
+### Step 1 — Check available payout settings
+
+```
+GET /api/check-payout-settings
+```
+
+Verifies the user has at least one payout setting configured.
+
+### Step 2 — Select payment method
+
+```
+GET /api/get-withdraw-payment-method
+```
+
+Returns available payment methods for withdrawal.
+
+### Step 3 — Get supported currencies
+
+```
+GET /api/get-withdraw-currencies-based-on-payment-method
+```
+
+<ParamField query="payment_method_id" type="integer" required>
+  Selected payment method.
+</ParamField>
+
+### Step 4 — Validate amount
+
+```
+GET /api/get-withdraw-details-with-amount-limit-check
+```
+
+<ParamField query="payment_method_id" type="integer" required>
+  Payment method ID.
+</ParamField>
+
+<ParamField query="currency_id" type="integer" required>
+  Currency to withdraw.
+</ParamField>
+
+<ParamField query="amount" type="number" required>
+  Withdrawal amount.
+</ParamField>
+
+Returns fee breakdown and confirms the amount is within configured limits.
+
+### Step 5 — Confirm withdrawal
+
+```
+POST /api/withdraw-money-pay
+```
+
+<ParamField body="payout_setting_id" type="integer" required>
+  ID of the saved payout destination.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency to withdraw.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Withdrawal amount.
+</ParamField>
+
+<ParamField body="note" type="string">
+  Optional withdrawal note.
+</ParamField>
+
+<ParamField body="pin" type="string">
+  Transaction PIN (if enabled).
+</ParamField>
+
+<Warning>
+Withdrawals are processed manually by an administrator. The status remains `Pending` until an admin approves or rejects the request.
+</Warning>
+
+## Additional endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/withdrawal/get-all-countries` | All countries for bank form |
+| `GET` | `/api/withdrawal/get-withdrawal-crypto-currencies` | Crypto currencies available for withdrawal |

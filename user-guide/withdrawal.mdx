@@ -1,0 +1,110 @@
+---
+title: "Withdrawal"
+description: "Withdraw funds from your DossPanel wallet to a bank account, crypto wallet, or other payout method."
+---
+
+The Withdrawal feature lets you move money from your DossPanel wallet to an external destination such as a bank account or a cryptocurrency wallet address. You must first set up a payout method before you can submit a withdrawal request.
+
+## Setting up a payout method
+
+Before withdrawing, configure at least one payout method under **Payouts → Settings** (`/payout/setting`).
+
+<Steps>
+  <Step title="Open Payout Settings">
+    Navigate to **Payouts → Settings** or go to `/payout/setting`.
+  </Step>
+
+  <Step title="Select a payment method">
+    Choose the type of payout method you want to add. Available options include Bank, and any other withdrawal methods activated by the administrator (e.g. cryptocurrency wallets). The list is filtered to methods enabled in `getPaymoneySettings('payment_methods')['web']['withdrawal']`.
+  </Step>
+
+  <Step title="Fill in the payout details">
+    Depending on the method selected:
+    - **Bank**: provide bank name, account name, account number, and country.
+    - **Crypto**: select the currency and provide the wallet address.
+  </Step>
+
+  <Step title="Save the payout method">
+    Save your payout setting. It appears in your payout settings list and is available to select when submitting a withdrawal.
+  </Step>
+</Steps>
+
+## Submitting a withdrawal request
+
+<Steps>
+  <Step title="Open Payouts">
+    Navigate to **Payouts** or go to `/payout`.
+  </Step>
+
+  <Step title="Click Withdraw">
+    Click the **Withdraw** or **New Withdrawal** button.
+  </Step>
+
+  <Step title="Select wallet and amount">
+    Choose the wallet currency to withdraw from. Only currencies with an active Withdrawal fees/limits configuration are available. Enter the amount.
+
+    The `CheckWalletBalance` rule validates that you have sufficient balance including fees.
+  </Step>
+
+  <Step title="Select payout method">
+    Choose one of your saved payout methods. The system retrieves the `PayoutSetting` record linked to your account.
+  </Step>
+
+  <Step title="Review and confirm">
+    Review the withdrawal summary including fees. Confirm the request.
+  </Step>
+
+  <Step title="Admin review">
+    Withdrawals are placed in a `Pending` status. An administrator reviews and approves or rejects the request. A `PendingWithdrawal` job dispatches notifications to the admin queue.
+  </Step>
+</Steps>
+
+## Fee structure
+
+Withdrawal fees are configured per currency and payment method in the admin Fees & Limits panel. As with other transaction types, fees consist of:
+
+- **Percentage fee**: `amount × charge_percentage%`
+- **Fixed fee**: flat `charge_fixed` value
+- **Total deducted**: the sum of percentage fee + fixed fee subtracted from your wallet balance
+
+## Withdrawal statuses
+
+| Status | Meaning |
+|---|---|
+| Pending | Withdrawal request submitted; awaiting admin review |
+| Success | Approved by admin; funds dispatched to payout method |
+| Rejected | Declined by admin; no funds deducted |
+
+## Tracking your withdrawals
+
+All past and pending withdrawal requests are listed at `/payout`. The table shows:
+
+- Date created
+- Payment method
+- Amount and currency
+- Status
+- Bank or wallet details (where applicable)
+
+You receive an email and/or SMS notification when the status changes, via `WithdrawalStatusChangeMailService` and `WithdrawalStatusChangeSmsService`.
+
+## Crypto withdrawals
+
+For cryptocurrency withdrawals, only currencies with `type = 'crypto'` and an active Withdrawal fees/limits entry are shown. You must have a corresponding crypto payout setting saved with a valid wallet address.
+
+<Warning>
+Double-check the withdrawal address before confirming. Cryptocurrency transactions are irreversible. Sending to an incorrect address will result in permanent loss of funds.
+</Warning>
+
+## Frequently asked questions
+
+<Accordion title="How long does withdrawal processing take?">
+Processing time depends on the administrator's review queue. Bank withdrawals also depend on your bank's processing time after admin approval. Crypto withdrawals are sent on-chain after admin approval, subject to network confirmation times.
+</Accordion>
+
+<Accordion title="Can I cancel a pending withdrawal?">
+Contact support or the platform administrator to request cancellation of a pending withdrawal before it is approved.
+</Accordion>
+
+<Accordion title="Why was my withdrawal rejected?">
+Common reasons include insufficient KYC verification, suspicious activity flags, or incorrect payout details. Check your email notification for the rejection reason or contact support.
+</Accordion>

@@ -1,0 +1,140 @@
+---
+title: "User roles"
+description: "DossPanels has two separate role hierarchies: one for admin panel users and one for customer-facing users."
+---
+
+## Overview
+
+DossPanels maintains a single `roles` table that covers both the admin panel and the user-facing application. The `user_type` column on each role distinguishes which interface the role belongs to. The `customer_type` column further classifies the specific persona.
+
+```sql
+-- roles table schema
+id           INT  PRIMARY KEY
+name         VARCHAR(50)              -- machine name, e.g. 'Admin'
+display_name VARCHAR(50) NULLABLE     -- human-readable label
+description  VARCHAR NULLABLE
+user_type    VARCHAR(30)              -- 'Admin' or 'User'
+customer_type VARCHAR(30)             -- 'user', 'merchant', 'cashier', 'manager', etc.
+is_default   VARCHAR(5) DEFAULT 'No'  -- 'Yes' or 'No'
+```
+
+Roles are assigned to admins via the `admins.role_id` foreign key, and to users via both `users.role_id` and the `role_user` pivot table.
+
+## Admin roles
+
+Admin accounts live in the `admins` table, which is separate from the `users` table. The `Admin` model implements `AuthenticatableContract` and uses its own authentication guard.
+
+### Super admin
+
+The seed data creates one admin account with `role_id = 1`, which maps to the super admin role. This role is assigned every available admin permission (view, add, edit, delete) across all functional groups:
+
+- User management
+- Transaction management
+- Deposits, withdrawals, transfers, exchanges, request payments
+- Merchant management
+- Currency and fee configuration
+- Roles and permissions
+- System settings
+- Reports and activity logs
+- Support tickets
+
+The default super admin credentials seeded by `AdminTableSeeder` are:
+- **Email:** `admin@techvill.net`
+- **Password:** `123456`
+
+<Warning>
+  The default admin password must be changed immediately after the first login.
+</Warning>
+
+### Additional admin roles
+
+The admin panel supports creating additional admin accounts with restricted roles. Each admin role is a record in the `roles` table with `user_type = 'Admin'`. You assign specific permissions to each role through the `permission_role` pivot table.
+
+Admin permissions are grouped by function and named with the pattern `{action}_{resource}`, for example:
+
+| Group | Example permissions |
+|-------|--------------------|
+| User | `view_user`, `add_user`, `edit_user`, `delete_user` |
+| Transaction | `view_transaction`, `edit_transaction` |
+| Deposit | `view_deposit`, `edit_deposit` |
+| Withdrawal | `view_withdrawal`, `edit_withdrawal` |
+| Transfer | `view_transfer`, `edit_transfer` |
+| Exchange | `view_exchange`, `edit_exchange` |
+| Request Payment | `view_request_payment`, `edit_request_payment` |
+| Merchant | `view_merchant`, `edit_merchant` |
+| Currency | `view_currency`, `edit_currency` |
+| Role | `view_role`, `add_role`, `edit_role`, `delete_role` |
+
+To look up the permissions assigned to an admin role:
+
+```php
+use App\Models\Role;
+
+$permissionIds = Role::permission_role($roleId);
+```
+
+## User (customer) roles
+
+End-user accounts live in the `users` table and are assigned a `role_id` that points to a role with `user_type = 'User'`. The `users.type` column stores the resolved type string used in application logic.
+
+### User types
+
+| Type value | `customer_type` | Description |
+|------------|-----------------|-------------|
+| `user` | `user` | Standard customer account. Can hold wallets, send and receive money, and make payment requests. |
+| `merchant` | `merchant` | Business account. Can accept payments via a merchant profile and manage merchant apps. |
+| `cashier` | `cashier` | Operates under a merchant. Processes in-person payments on behalf of the merchant. Linked to a `merchant_id`. |
+| `manager` | `manager` | Manages a merchant and their associated cashiers. Has visibility into the merchant's transaction history. |
+| `doss` | `merchant` (default role) | A DossPanels-specific agent type used for the Doss agent network. |
+| `inspector` | `merchant` (default role) | An inspector account assigned under a Doss agent (`doss_id`). |
+| `agency` | `merchant` (default role) | Agency-level user role. |
+| `doctor` | `merchant` (default role) | Used by the optional medical module (appointments and scheduling). |
+
+### Role assignment on registration
+
+When a user registers self-service, the `User::createNewUser()` method looks up the default role for the selected type:
+
+```php
+// For a standard user registration
+$role = Role::select('id')
+    ->where(['customer_type' => 'user', 'user_type' => 'User', 'is_default' => 'Yes'])
+    ->first();
+
+// For a merchant registration
+$role = Role::select('id')
+    ->where(['customer_type' => 'merchant', 'user_type' => 'User', 'is_default' => 'Yes'])
+    ->first();
+```
+
+The `Role::availableUserRoles()` method returns the list of self-registration types based on which default roles exist:
+
+```php
+$availableTypes = (new Role())->availableUserRoles();
+// Returns ['user', 'merchant'] if both default roles exist
+```
+
+Admin-created users bypass the default role lookup and are assigned whichever `role_id` the admin specifies directly.
+
+## Role-based permissions for users
+
+User-facing permissions are enforced by checking `users.type` in controllers and the `RoleUser` pivot:
+
+```php
+// role_user pivot table schema
+user_id   INT
+role_id   INT  REFERENCES roles(id)
+user_type VARCHAR(30)
+```
+
+Controllers check the authenticated user's `type` field to determine what actions are available. For example, the transaction controller restricts cashier views to `transaction_type_id = 10` (Payment Received) and scopes results to `cashier_id = auth()->user()->id`.
+
+<Info>
+  The `role_user` pivot supports multiple role assignments per user, though in practice most users have a single primary role. Admin-side roles are separate and stored only in `admins.role_id`.
+</Info>
+
+## Managing roles in the admin panel
+
+1. Navigate to **Roles & Permissions** in the admin sidebar.
+2. Click **Add Role** to create a new admin or user role.
+3. Assign permissions by selecting from the grouped permission list.
+4. Set `is_default` to **Yes** for the role that new self-registered users of that `customer_type` should receive automatically.

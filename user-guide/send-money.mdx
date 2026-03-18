@@ -1,0 +1,102 @@
+---
+title: "Send Money"
+description: "Transfer funds instantly to any DossPanel user by ID, email, or phone number."
+---
+
+The Send Money feature allows you to transfer funds from your wallet to another DossPanel user. You can identify the recipient by their user ID (UUID), email address, or phone number, depending on how the platform has been configured.
+
+## Before you start
+
+- Your wallet must have sufficient balance to cover the transfer amount plus any applicable fees.
+- The recipient must not be suspended or inactive.
+- You cannot send money to yourself.
+
+## How to send money
+
+<Steps>
+  <Step title="Open Send Money">
+    From the dashboard, click **Send Money** or navigate to `/moneytransfer`.
+  </Step>
+
+  <Step title="Enter the recipient">
+    Enter the recipient's identifier. The platform accepts:
+
+    - **User ID**: enter the numeric portion of their ID (the `ZG-` prefix is added automatically)
+    - **Email address**: e.g. `recipient@example.com`
+    - **Phone number**: international format e.g. `+12015550123`
+
+    DossPanel validates the recipient in real time. You will see an error if the recipient is suspended, inactive, or if you try to send to yourself.
+  </Step>
+
+  <Step title="Select wallet and amount">
+    Choose the source wallet (currency). Only wallets with an active fees/limits configuration for transfers are shown. Enter the amount to send and add a mandatory note describing the purpose of the transfer.
+  </Step>
+
+  <Step title="Review fees">
+    DossPanel calculates the fee breakdown before you confirm:
+
+    - **Percentage fee**: `amount × (charge_percentage / 100)`
+    - **Fixed fee**: `charge_fixed`
+    - **Total deducted**: `amount + total_fees`
+
+    The confirmation page shows the recipient name, currency, amount, fee, and total before you commit.
+  </Step>
+
+  <Step title="Enter your PIN to confirm">
+    On the confirmation page, enter your account PIN (your account password) in the OTP-style input. DossPanel checks the entered PIN against your stored password hash using `Hash::check()`. If the PIN is correct, the transfer is processed.
+  </Step>
+
+  <Step title="Transfer complete">
+    On success you are redirected to the success page showing the transaction ID. You can also download a PDF receipt from the success page.
+  </Step>
+</Steps>
+
+## Fee structure
+
+Fees are configured per currency and transaction type by the administrator in the Fees & Limits panel. The fees applied to your specific currency wallet are:
+
+| Fee component | Calculation |
+|---|---|
+| Percentage fee | `amount × charge_percentage%` |
+| Fixed fee | flat `charge_fixed` amount |
+| Total fee | percentage fee + fixed fee |
+| Total deducted | amount + total fee |
+
+## Transfer limits
+
+The administrator sets minimum and maximum transfer amounts per currency:
+
+- If the amount is below the **minimum**, an error is shown: *"Minimum amount {min}"*.
+- If the amount exceeds the **maximum**, an error is shown: *"Minimum amount {min} and Maximum amount {max}"*.
+- If your wallet balance is insufficient to cover the total (amount + fees), an error states: *"Not have enough balance."*
+
+## Sending to unregistered users
+
+If the recipient email or phone is not yet registered on DossPanel, the system creates a **pending transfer** linked to that email/phone. When the recipient registers and verifies their account, the funds are automatically credited to their wallet and the transaction status is updated to `Success`.
+
+<Info>
+Pending transfers are processed during the new user's phone verification step — the balance is moved from a dummy account to the real user's wallet automatically.
+</Info>
+
+## Downloading a transfer receipt
+
+From the success page, click **Print / PDF** to generate a PDF of the transaction. The receipt includes:
+
+- Sender and recipient details
+- Currency, amount, fees, and total
+- Transaction UUID and timestamp
+- Transaction status
+
+## Frequently asked questions
+
+<Accordion title="The recipient's name did not appear when I entered their ID">
+Check that you are entering the numeric portion of their User ID (without the `ZG-` prefix). If the user is not found, verify the ID with the recipient directly.
+</Accordion>
+
+<Accordion title="My PIN was rejected">
+The PIN is your account login password. If you have recently changed your password, use the new one. Contact support if the issue persists.
+</Accordion>
+
+<Accordion title="Can I cancel a transfer after confirming?">
+Transfers are processed immediately upon PIN confirmation. If the funds need to be returned, the recipient can send money back to you, or you can raise a dispute if there is a disagreement.
+</Accordion>

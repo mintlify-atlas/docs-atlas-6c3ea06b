@@ -1,0 +1,150 @@
+---
+title: "Request Money"
+description: "Create and manage money requests via the DossPanels API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+Money requests let you ask another user to send you funds. The flow:
+1. Find the target user by email or phone
+2. Select currency and amount
+3. Submit the request — the other user receives a notification
+4. The other user accepts or cancels the request
+
+## Step 1 — Find target user
+
+### By email
+
+```
+POST /api/request-money-email-check
+```
+
+<ParamField body="email" type="string" required>
+  Email address of the user to request money from.
+</ParamField>
+
+### By phone
+
+```
+POST /api/request-money-phone-check
+```
+
+<ParamField body="phone" type="string" required>
+  Phone number of the user to request money from.
+</ParamField>
+
+## Step 2 — Get available currencies
+
+```
+GET /api/get-request-currency
+```
+
+Returns currencies available for the request.
+
+## Step 3 — Submit request
+
+```
+POST /api/request-money-pay
+```
+
+<ParamField body="email" type="string">
+  Target user email.
+</ParamField>
+
+<ParamField body="phone" type="string">
+  Target user phone.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency ID to request.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount being requested.
+</ParamField>
+
+<ParamField body="note" type="string">
+  Optional note or reason for the request.
+</ParamField>
+
+### Response
+
+<ResponseField name="status" type="integer">`200` on success</ResponseField>
+<ResponseField name="message" type="string">Confirmation message</ResponseField>
+<ResponseField name="data" type="object">
+  Created request object with `id`, `uuid`, `amount`, `currency`, `status`.
+</ResponseField>
+
+## Accepting a request
+
+### Get request details
+
+```
+GET /api/accept-request-email-phone
+```
+
+Returns details of a pending request for the authenticated user to accept.
+
+### Check acceptance limit
+
+```
+POST /api/request-accept-amount-limit-check
+```
+
+<ParamField body="request_payment_id" type="integer" required>
+  ID of the payment request.
+</ParamField>
+
+### Get acceptance fee details
+
+```
+GET /api/get-accept-fees-details
+```
+
+Returns fee breakdown for accepting the request.
+
+### Confirm acceptance
+
+```
+POST /api/accept-request-payment-pay
+```
+
+<ParamField body="request_payment_id" type="integer" required>
+  ID of the payment request to accept.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency wallet to pay from.
+</ParamField>
+
+<ParamField body="pin" type="string">
+  Transaction PIN (if enabled).
+</ParamField>
+
+## Cancelling a request
+
+```
+POST /api/cancel-request
+```
+
+Either the requester or the payer can cancel a pending request.
+
+<ParamField body="request_payment_id" type="integer" required>
+  ID of the payment request to cancel.
+</ParamField>
+
+## Check request creator status
+
+```
+GET /api/transaction-details/request-payment/check-creator-status
+```
+
+Verifies whether the creator of a request payment is still an active user.
+
+<ParamField query="id" type="integer" required>
+  Request payment ID.
+</ParamField>

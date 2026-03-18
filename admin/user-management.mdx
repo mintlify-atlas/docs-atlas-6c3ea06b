@@ -1,0 +1,148 @@
+---
+title: "User Management"
+description: "Manage user accounts, KYC verification, roles, bulk import, and wallet operations from the admin panel."
+---
+
+The **Users** section (`/admin/users`) lists all registered users of type `user` and `cashier`. Merchants are managed under a separate list at `/admin/merchants`.
+
+## Viewing and Searching Users
+
+The user list loads 10 users per page, ordered by most recently created. Each row shows:
+
+- Full name and UUID
+- Email address and phone number
+- Account status (`Active`, `Inactive`, `Suspended`)
+- Assigned role and last login information
+- KYC / document verification status
+
+**Filtering options:**
+
+- **Search** — matches against UUID, full name (`CONCAT(first_name, ' ', last_name)`), formatted phone, and email.
+- **Status filter** — filter by `Active`, `Inactive`, or `Suspended`.
+
+## Exporting the User List
+
+Export the full user list from the toolbar above the table:
+
+| Format | Description |
+|---|---|
+| CSV / XLSX | Downloads via `UsersExport` as `users_list_<timestamp>.xlsx` |
+| PDF | Generates a printable report using the date range filters |
+
+## Creating a User
+
+<Steps>
+  <Step title="Open the create form">
+    Go to **Users → Add User** (`/admin/users/create`). You need the `add_user` permission.
+  </Step>
+  <Step title="Fill in required fields">
+    Provide first name, last name, email, phone (optional), status, and role. Password requirements vary by role: users and merchants require a 4-digit PIN, other roles require at least 8 characters.
+  </Step>
+  <Step title="Submit and verify">
+    On save, the system creates the user, assigns the role, creates a default wallet in the platform default currency, and (if verification email is enabled) sends a verification email to the user.
+  </Step>
+</Steps>
+
+<Note>
+  When a new user is created and the **BlockIo** crypto provider is active, the system automatically generates a crypto wallet address for the user.
+</Note>
+
+## Editing a User
+
+Navigate to **Users → Edit** for any user. Editable fields include:
+
+- First name, last name, email
+- Phone number with country code
+- Status (`Active`, `Inactive`, `Suspended`)
+- Assigned role — changing the role updates both the `users.role_id` column and the `role_user` pivot table
+- Country and city
+- Password (leave blank to keep the existing password)
+
+**Role-to-type mapping:**
+
+| Role ID | User Type |
+|---|---|
+| 2 | `user` |
+| 3 | `merchant` |
+| 6 | `doss` |
+| 7 | `inspector` |
+| 8 | `cashier` |
+| 9 | `manager` |
+| 10 | `agency` |
+
+<Warning>
+  Changing a user's status triggers a status-change notification email to the user. Ensure the email server is configured before editing user statuses.
+</Warning>
+
+## KYC / App User Verification
+
+The **App User Verification** list (`/admin/app_user_verification`) shows users who have uploaded all six identity document images (ID proof front/back, passport front/back, driving licence front/back).
+
+To approve a user:
+
+<Steps>
+  <Step title="Open the verification list">
+    Go to **Proofs → App User Verification**.
+  </Step>
+  <Step title="Review the documents">
+    Click a user row to view the uploaded images.
+  </Step>
+  <Step title="Approve or reject">
+    Click **Approve** to set `users.varified_user = 1`. Rejected users remain unverified and can re-submit.
+  </Step>
+</Steps>
+
+## Approving User Accounts
+
+User accounts can be approved through the edit screen by setting the `user_details.approved` field. This is separate from KYC and controls whether the account is fully onboarded.
+
+## Blocking / Unblocking Users
+
+Change the **Status** field on the edit form:
+
+- **Active** — user can log in and transact.
+- **Inactive** — user cannot log in. Any admin-initiated deposit or withdrawal for this user will be blocked.
+- **Suspended** — user cannot log in or transact.
+
+## Bulk User Import (Excel)
+
+Admins can create multiple users at once using an Excel import.
+
+<Steps>
+  <Step title="Download the sample file">
+    Go to the import page and click **Download Sample**. The file columns are: `first_name`, `last_name`, `phone`, `email`, `country_name`, `group_name`.
+  </Step>
+  <Step title="Fill in the spreadsheet">
+    Populate each row with user data. Country and group names must match existing records in the database.
+  </Step>
+  <Step title="Upload the file">
+    Upload the completed `.xlsx` or `.csv` file. The system validates the column headers before importing. Mismatched headers return an error.
+  </Step>
+</Steps>
+
+<Warning>
+  The import file must use the exact column order from the sample export: `first_name`, `last_name`, `phone`, `email`, `country_name`, `group_name`. Any deviation will cause the entire import to fail.
+</Warning>
+
+## Admin Deposit and Withdrawal
+
+Admins can manually credit or debit a user's wallet without the user initiating the transaction:
+
+- **Deposit**: Navigate to a user's profile and select **Deposit**. Choose the currency, enter the amount, review the confirmation screen, and confirm. A deposit record and transaction record are created and the wallet balance is updated. A confirmation email and optional SMS are sent to the user.
+- **Withdrawal**: Navigate to a user's profile and select **Withdraw**. Available currencies are filtered to those with active fees/limits configured for the `Mts` payment method.
+
+## User Groups
+
+Users can be organised into groups (e.g., by country or programme). To create a group:
+
+<Steps>
+  <Step title="Open the create group form">
+    Go to **Users → User Groups → Add Group**.
+  </Step>
+  <Step title="Fill in group details">
+    Provide a unique group name, select a country, and select at least two users to include.
+  </Step>
+  <Step title="Save the group">
+    The group is saved and linked to the selected users.
+  </Step>
+</Steps>

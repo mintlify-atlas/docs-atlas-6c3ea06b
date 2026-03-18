@@ -1,0 +1,118 @@
+---
+title: "Notifications"
+description: "Understand how DossPanel sends you alerts via push notifications, email, and SMS, and how to manage your preferences."
+---
+
+DossPanel keeps you informed about account activity through three notification channels: **Firebase push notifications**, **email**, and **SMS**. You can manage which notifications you receive from the settings panel.
+
+## Notification channels
+
+<CardGroup cols={3}>
+  <Card title="Push Notifications" icon="bell">
+    Real-time alerts sent to your mobile device via Firebase Cloud Messaging (FCM).
+  </Card>
+  <Card title="Email" icon="envelope">
+    Transactional and security emails sent through the configured email gateway.
+  </Card>
+  <Card title="SMS" icon="message">
+    Text messages sent to your registered phone number via the configured SMS provider (e.g. Twilio).
+  </Card>
+</CardGroup>
+
+## Types of notifications
+
+Notification types are defined in the `notification_types` table. Each type has a `name` and `alias` and can be toggled on or off per recipient type. Common notification events include:
+
+| Event | Description |
+|---|---|
+| Money sent | Confirmation when you send a transfer |
+| Money received | Alert when funds arrive in your wallet |
+| Payment request | Notification when someone requests money from you |
+| Request accepted | Confirmation that your payment request was accepted |
+| Deposit success | Confirmation of a completed deposit |
+| Withdrawal status change | Alert when withdrawal is approved or rejected |
+| Dispute opened | Notification to the defendant when a dispute is raised |
+| Dispute reply | Alert when the other party adds a message to a dispute |
+| Ticket reply | Notification when the support team responds to your ticket |
+| Two-factor code | Security code for 2FA login or settings change |
+
+## Firebase push notifications
+
+Push notifications are delivered to the device associated with your last login session. The platform uses the **FCM v1 API** with a service account for authentication.
+
+Each push notification carries:
+- A `title` (e.g. *"Payment Received"*)
+- A `body` with the amount and sender name
+- A `url` link to the relevant section of the app
+
+The `DossNotification` model stores in-app notification records in the `doss_notifications` table. Each record includes:
+
+| Field | Description |
+|---|---|
+| `receiver_id` | User ID of the notification recipient |
+| `sender_id` | User ID of the notification sender |
+| `user_id` | Associated user |
+| `type` | Notification type ID linked to `NotificationType` |
+| `notification_messages` | The notification message text |
+
+## Viewing in-app notifications
+
+All notifications are accessible from the **Notifications** page at `/notifications`. The list shows recent activity in reverse chronological order.
+
+## Managing notification preferences
+
+Notification settings are stored in the `notification_settings` table. Each setting links a `notification_type_id` to a `recipient_type` and has a `status` field (`Active` / `Inactive`).
+
+<Steps>
+  <Step title="Open notification settings">
+    Navigate to **Profile → Notifications** or find the notification preferences in your settings panel.
+  </Step>
+
+  <Step title="Review notification types">
+    The settings page lists all active notification types fetched via `NotificationSetting::getSettings()`. Investment-related notifications are hidden if the Investment module is not active.
+  </Step>
+
+  <Step title="Toggle preferences">
+    Enable or disable individual notification types for each channel (email, SMS, push). Changes take effect immediately.
+  </Step>
+</Steps>
+
+## Email notifications
+
+Emails are sent through the platform's configured email gateway (SMTP, Mailgun, etc.). Email templates are stored in the `email_templates` table and can be customized by the administrator. You receive transactional emails for:
+
+- Account verification on registration
+- Two-factor authentication codes
+- Transfer and deposit confirmations
+- Withdrawal status updates
+- Dispute and ticket replies
+
+## SMS notifications
+
+SMS messages are sent via the configured SMS provider (typically **Twilio**). SMS is used for:
+
+- OTP codes during registration and phone verification
+- Two-factor authentication codes (when phone 2FA is selected)
+- Transaction confirmation alerts (when enabled by the administrator)
+
+<Note>
+SMS notifications require a verified phone number on your account and depend on the SMS gateway being active and configured by your platform administrator.
+</Note>
+
+## Frequently asked questions
+
+<Accordion title="I'm not receiving push notifications">
+Ensure notifications are enabled in your mobile device settings for the DossPanel app. Your FCM device token (`fcm_last_login_device_token`) must be registered — this happens automatically on login with the mobile app.
+</Accordion>
+
+<Accordion title="I'm not receiving email notifications">
+Check your spam folder. Ensure the email address on your account is correct and verified. Contact support if the issue persists — the email gateway configuration may need attention.
+</Accordion>
+
+<Accordion title="Can I turn off all notifications?">
+You can disable individual notification types from the notification preferences page. However, some critical security notifications (such as 2FA codes) cannot be disabled as they are required for account security.
+</Accordion>
+
+<Accordion title="How do I update my notification phone number?">
+Update your phone number from **Profile → Phone**. All SMS notifications will be sent to the new number once the change is verified.
+</Accordion>

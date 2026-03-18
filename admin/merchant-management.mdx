@@ -1,0 +1,126 @@
+---
+title: "Merchant Management"
+description: "Manage merchant accounts, cashiers, merchant groups, payment history, and per-merchant fee configuration."
+---
+
+Merchants are users of type `merchant` and are the businesses or service providers that accept payments through DossPanels. Each merchant can have multiple cashiers and optionally a manager.
+
+## Viewing Merchants
+
+Navigate to **Users → Merchants** (`/admin/merchants`). The list shows all users of type `merchant`, paginated 20 per page, and searchable by first or last name.
+
+Export options:
+
+| Format | Route |
+|---|---|
+| XLSX | `/admin/merchant_users/csv` |
+| PDF | `/admin/merchant_users/pdf` |
+
+## Editing a Merchant
+
+The merchant edit form (`/admin/merchants/edit/{id}`) allows you to update:
+
+| Field | Notes |
+|---|---|
+| Business name | Required |
+| Site URL | Required; must be a valid URL |
+| Fee (%) | Merchant-level payment fee percentage |
+| Address | Physical or registered address |
+| Latitude / Longitude | For map-based location features |
+| Logo | Accepted image formats; displayed in the merchant profile |
+| Currency | The operating fiat currency for this merchant |
+| Merchant Group | Links the merchant to a group for group-level fee inheritance |
+| Type | `express` or standard; express merchants receive auto-generated API client credentials |
+| Status | `Active` or `Inactive` |
+
+<Note>
+  When you change a merchant's group, the fee field is automatically updated to match the group's configured fee via the `changeMerchantFeeWithGroupChange` endpoint.
+</Note>
+
+<Warning>
+  Deleting a merchant logo is irreversible. The image file is permanently removed from the server.
+</Warning>
+
+## Merchant Groups
+
+Merchant groups let you apply a shared fee and fee-bearer policy to multiple merchants at once.
+
+### Viewing Groups
+
+Go to **Settings → Merchant Groups** (`/admin/settings/merchant-group`).
+
+### Creating a Merchant Group
+
+<Steps>
+  <Step title="Open the Add Group form">
+    Click **Add Merchant Group** from the list page.
+  </Step>
+  <Step title="Fill in the required fields">
+    Provide:
+    - **Name** — must be unique across all groups
+    - **Description**
+    - **Fee** — numeric percentage applied to merchant transactions
+    - **Fee Bearer** — either `Merchant` (the merchant absorbs the fee) or `User` (the customer pays the fee)
+    - **Default** — only one group can be the default at a time
+  </Step>
+  <Step title="Save the group">
+    Click **Save**. If this group is marked as default, any previously default group is automatically updated.
+  </Step>
+</Steps>
+
+<Warning>
+  The default merchant group cannot be deleted. Assign a different group as default before attempting to remove it.
+</Warning>
+
+### Editing or Deleting Groups
+
+Click the edit icon on any group row. All fields are editable. To delete, click the delete icon — the system prevents deletion of the current default group.
+
+## Viewing Merchant Payment History
+
+From the merchant list, click a merchant's name to open their profile, then navigate to the **Payments** tab to see all `MerchantPayment` records associated with that merchant. You can filter by date range, status, and currency, and export as XLSX or PDF.
+
+## Cashier Management
+
+Each merchant can have one or more cashiers. View all cashiers for a merchant at `/admin/merchants/cashiers/list/{merchant_id}`.
+
+### Editing a Cashier
+
+Update cashier name, email, phone, role, password, and status from the edit form. Password requires a minimum of 8 characters.
+
+### Cashier Payment Summary
+
+The cashier detail view shows:
+
+- Total successful payments
+- Total refunded amounts
+- Today's successful and refunded sales
+- Total and today's transaction counts
+
+### Cashier Shifts
+
+Shifts are tracked per cashier. Admins can view shift history and the transactions that occurred within each shift at `/admin/merchants/cashier/{id}/shifts`.
+
+## Transaction Refunds
+
+Admins can refund a successful merchant payment from the transaction detail view:
+
+<Steps>
+  <Step title="Find the transaction">
+    Navigate to the merchant's payment history and locate the transaction to refund.
+  </Step>
+  <Step title="Initiate refund">
+    Click **Refund**. The system checks that the transaction status is `Success` and has not already been refunded.
+  </Step>
+  <Step title="Refund is processed">
+    A new `MerchantPayment` record with status `Refund` is created, the original transaction is updated with a `refund_reference`, the customer's wallet is credited, and the merchant's wallet is debited. A push notification is sent to the cashier.
+  </Step>
+</Steps>
+
+<Warning>
+  Refunds are irreversible. Refunding a transaction that was already refunded is blocked by the system.
+</Warning>
+
+## Manager Assignment
+
+Each merchant can have one manager. Go to `/admin/merchant/manager/{merchant_id}` to view or create the manager account. Only one manager is permitted per merchant.

@@ -1,0 +1,141 @@
+---
+title: "Profile"
+description: "Manage user profile information and wallet balances via the API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Get user profile
+
+```
+GET /api/get-user-profile
+```
+
+Returns the full profile of the authenticated user.
+
+### Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="User profile fields">
+    <ResponseField name="id" type="integer">User ID</ResponseField>
+    <ResponseField name="uuid" type="string">Universally unique identifier</ResponseField>
+    <ResponseField name="first_name" type="string">First name</ResponseField>
+    <ResponseField name="last_name" type="string">Last name</ResponseField>
+    <ResponseField name="email" type="string">Email address</ResponseField>
+    <ResponseField name="phone" type="string">Phone number</ResponseField>
+    <ResponseField name="picture" type="string">Profile picture URL</ResponseField>
+    <ResponseField name="status" type="string">Account status: `Active`, `Blocked`, `Suspended`</ResponseField>
+    <ResponseField name="identity_verified" type="integer">`1` if KYC identity approved</ResponseField>
+    <ResponseField name="address_verified" type="integer">`1` if KYC address approved</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash cURL
+curl https://yourdomain.com/api/get-user-profile \
+  -H "Authorization: Bearer {token}"
+```
+
+## Update user profile
+
+```
+POST /api/update-user-profile
+```
+
+<ParamField body="first_name" type="string">
+  Updated first name.
+</ParamField>
+
+<ParamField body="last_name" type="string">
+  Updated last name.
+</ParamField>
+
+<ParamField body="email" type="string">
+  Updated email address (triggers re-verification).
+</ParamField>
+
+<ParamField body="phone" type="string">
+  Updated phone number.
+</ParamField>
+
+<ParamField body="address" type="string">
+  Postal address.
+</ParamField>
+
+<ParamField body="city_id" type="integer">
+  City ID.
+</ParamField>
+
+<ParamField body="country_id" type="integer">
+  Country ID.
+</ParamField>
+
+## Upload profile picture
+
+```
+POST /api/profile-image-upload
+```
+
+Upload a profile image. Send as `multipart/form-data`.
+
+<ParamField body="photo" type="file" required>
+  Image file (JPEG, PNG). Recommended: square image under 2MB.
+</ParamField>
+
+## Update password
+
+```
+POST /api/update-password
+```
+
+<ParamField body="current_password" type="string" required>
+  The user's current password.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  New password. Minimum 8 characters.
+</ParamField>
+
+<ParamField body="password_confirmation" type="string" required>
+  Confirmation of the new password.
+</ParamField>
+
+## Get wallet balances
+
+### All wallet balances
+
+```
+GET /api/available-balance
+```
+
+Returns balances for all wallets the authenticated user holds.
+
+<ResponseField name="data" type="array">
+  Array of wallet objects.
+  <Expandable title="Wallet fields">
+    <ResponseField name="id" type="integer">Wallet ID</ResponseField>
+    <ResponseField name="currency_id" type="integer">Currency ID</ResponseField>
+    <ResponseField name="currency_code" type="string">ISO currency code (e.g. `USD`)</ResponseField>
+    <ResponseField name="balance" type="string">Current balance as decimal string</ResponseField>
+    <ResponseField name="is_default" type="integer">`1` if this is the default wallet</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Default wallet balance
+
+```
+GET /api/get-default-wallet-balance
+```
+
+Returns the balance of the user's default currency wallet only.
+
+## Additional profile endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/get-user-specific-details` | Returns extra user detail fields |
+| `POST` | `/api/profile/duplicate-email-check` | Check if an email is already taken (for profile update) |
+| `GET` | `/api/check-processed-by` | Check who processed a user's KYC verification |

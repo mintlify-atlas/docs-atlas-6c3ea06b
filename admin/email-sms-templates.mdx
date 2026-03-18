@@ -1,0 +1,137 @@
+---
+title: "Email & SMS Templates"
+description: "Customise notification email and SMS templates, manage template variables, and configure SMTP and Twilio settings."
+---
+
+DossPanels sends automated email and SMS notifications for key platform events. All templates are editable from the admin panel without touching code.
+
+## Email Templates
+
+Navigate to **Templates → Email Templates** (`/admin/email-templates`).
+
+### Template Groups and Events
+
+Templates are organised into groups. The system ships with templates for:
+
+| Group | Example Templates |
+|---|---|
+| Deposit | Notify Admin on Deposit, Deposit Confirmation to User |
+| Withdrawal | Notify Admin on Withdrawal, Withdrawal Confirmation to User |
+| Transfer | Send Transfer Notification, Receive Transfer Notification |
+| General | Account Verification, Password Reset, Status Change |
+
+### Supported Languages
+
+Each template supports up to 8 languages:
+
+| Language | Code |
+|---|---|
+| English | `en` |
+| Arabic | `ar` |
+| French | `fr` |
+| Portuguese | `pt` |
+| Russian | `ru` |
+| Spanish | `es` |
+| Turkish | `tr` |
+| Chinese | `ch` |
+
+When editing a template, you can switch between language tabs and update the subject and body for each language independently.
+
+### Editing an Email Template
+
+<Steps>
+  <Step title="Select the template group and event">
+    On the Email Templates page, click a template name in the left sidebar to load it.
+  </Step>
+  <Step title="Switch to the desired language tab">
+    Click the language code tab (e.g., **en**, **fr**) to edit that language's version.
+  </Step>
+  <Step title="Update subject and body">
+    Modify the **Subject** and **Body** fields. The body supports HTML formatting. Use the available template variables (see below) to personalise the content.
+  </Step>
+  <Step title="Save">
+    Click **Save**. The template is updated for all 8 language versions simultaneously using the `alias` identifier.
+  </Step>
+</Steps>
+
+### Template Variables
+
+Template variables are placeholders replaced with real data at send time. Common variables include:
+
+| Variable | Description |
+|---|---|
+| `{user_name}` | The recipient's full name |
+| `{amount}` | Transaction amount with currency symbol |
+| `{currency}` | Currency code |
+| `{transaction_id}` | Unique transaction reference UUID |
+| `{date}` | Transaction date and time |
+| `{status}` | Transaction status |
+| `{site_name}` | Platform name from settings |
+| `{site_url}` | Platform URL |
+
+<Note>
+  Check the default template body for the complete list of variables available for each specific template. Not all variables are available in every template.
+</Note>
+
+## SMS Templates
+
+Navigate to **Templates → SMS Templates** (`/admin/sms-templates`).
+
+SMS templates use the same `EmailTemplate` model (with `type = 'sms'`) and support the same 8 languages. The default SMS template group is **General** (e.g., Address or Identity Verification notifications).
+
+### Editing an SMS Template
+
+The workflow is identical to email templates:
+
+1. Select the template from the sidebar.
+2. Switch to the target language tab.
+3. Edit the **Body** field (SMS does not use a subject line).
+4. Click **Save**.
+
+<Note>
+  Keep SMS templates concise. Most SMS providers charge per 160-character segment. Long messages may be split into multiple SMS messages.
+</Note>
+
+## SMTP (Email Server) Configuration
+
+The SMTP settings that power outgoing emails are configured in **Settings → Email Configuration**.
+
+<Steps>
+  <Step title="Open Email Configuration">
+    Go to **Settings → Email Config** in the admin panel.
+  </Step>
+  <Step title="Enter SMTP credentials">
+    | Field | Description |
+    |---|---|
+    | Mail Driver | `smtp` for standard SMTP servers |
+    | SMTP Host | Hostname of your mail server (e.g., `smtp.mailgun.org`) |
+    | SMTP Port | Port number (typically `587` for TLS or `465` for SSL) |
+    | SMTP Username | Your email account username |
+    | SMTP Password | Your email account password |
+    | Encryption | `tls` or `ssl` |
+    | From Name | Sender name displayed to recipients |
+    | From Email | Sender email address |
+  </Step>
+  <Step title="Save and test">
+    Save the configuration and use the **Send Test Email** button if available to verify the SMTP connection.
+  </Step>
+</Steps>
+
+<Warning>
+  Invalid SMTP credentials will cause all system emails to fail silently or throw exceptions during user actions (such as user creation). Always test after updating SMTP settings.
+</Warning>
+
+## SMS Provider (Twilio) Configuration
+
+SMS notifications are sent via the SMS provider configured in **Settings → SMS Config**.
+
+| Field | Description |
+|---|---|
+| SMS Driver | Select `twilio` or another supported provider |
+| Account SID | Your Twilio Account SID |
+| Auth Token | Your Twilio Auth Token |
+| From Number | The Twilio phone number to send from (E.164 format, e.g., `+15551234567`) |
+
+<Warning>
+  Ensure the sending phone number is a Twilio-verified number with SMS capability. Messages sent from unverified numbers will be rejected by Twilio.
+</Warning>

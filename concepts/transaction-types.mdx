@@ -1,0 +1,209 @@
+---
+title: "Transaction types"
+description: "All twelve transaction types in DossPanels, how the transaction lifecycle works, and how fees are calculated."
+---
+
+## Overview
+
+Every financial event in DossPanels creates one or more rows in the `transactions` table. The type of event is identified by a `transaction_type_id` foreign key, which references the `transaction_types` table. Transaction types are seeded once and then loaded as PHP constants at application boot, so they can be referenced by name anywhere in the codebase.
+
+### The twelve transaction types
+
+| ID | Constant | Description |
+|----|----------|-------------|
+| 1 | `Deposit` | Funds added to a user's wallet via a payment method |
+| 2 | `Withdrawal` | Funds removed from a wallet to an external account |
+| 3 | `Transferred` | The sender side of a peer-to-peer transfer |
+| 4 | `Received` | The recipient side of a peer-to-peer transfer |
+| 5 | `Exchange_From` | The source currency side of a currency exchange |
+| 6 | `Exchange_To` | The destination currency side of a currency exchange |
+| 7 | `Request_Sent` | A payment request sent to another user |
+| 8 | `Request_Received` | A payment request received from another user |
+| 9 | `Payment_Sent` | A payment made to a merchant |
+| 10 | `Payment_Received` | A payment received by a merchant (also used for cashier transactions) |
+| 11 | `Crypto_Sent` | Cryptocurrency sent to an external on-chain address |
+| 12 | `Crypto_Received` | Cryptocurrency received from an external on-chain address |
+
+<Info>
+  Transaction types are bootstrapped as PHP constants by `App\Providers\AppServiceProvider` on every request. The constant name matches the `name` column value exactly (e.g. `Deposit`, `Transferred`, `Exchange_From`).
+</Info>
+
+## Transaction types in detail
+
+<AccordionGroup>
+  <Accordion title="Deposit (ID 1)">
+    A user requests to add funds to their wallet by selecting a payment method (Stripe, PayPal, Bank, Coinpayments, etc.). The transaction is created with status `Pending`. An admin approves it in the admin panel, updating the status to `Success` and crediting the user's wallet.
+
+    **Tables involved:** `transactions`, `deposits`
+    **Reference model:** `Deposit` (linked via `transaction_reference_id`)
+  </Accordion>
+
+  <Accordion title="Withdrawal (ID 2)">
+    A user requests to move funds out of their wallet to an external destination (PayPal, bank account, or crypto address). Created as `Pending`, requires admin approval to become `Success` and debit the wallet.
+
+    **Tables involved:** `transactions`, `withdrawals`, `withdrawal_details`
+    **Reference model:** `Withdrawal`
+  </Accordion>
+
+  <Accordion title="Send Money / Transfer (IDs 3 & 4)">
+    Sending money to another registered user (or an unregistered email/phone) creates a pair of transaction records:
+
+    - **Type 3 — Transferred:** recorded against the sender's account. Wallet is debited immediately.
+    - **Type 4 — Received:** recorded against the recipient's account. Wallet is credited immediately.
+
+    If the recipient is not yet registered, the `Received` transaction is held with `user_type = 'unregistered'` until they sign up.
+
+    **Tables involved:** `transactions`, `transfers`
+    **Reference model:** `Transfer`
+  </Accordion>
+
+  <Accordion title="Exchange (IDs 5 & 6)">
+    Converting funds from one currency to another creates two transaction records:
+
+    - **Type 5 — Exchange_From:** debits the source wallet.
+    - **Type 6 — Exchange_To:** credits the destination wallet.
+
+    Exchange rates are applied using the `rate` values stored on each `Currency` record.
+
+    **Tables involved:** `transactions`, `currency_exchanges`
+    **Reference model:** `CurrencyExchange`
+  </Accordion>
+
+  <Accordion title="Request Money (IDs 7 & 8)">
+    A user requests a payment from another user:
+
+    - **Type 7 — Request_Sent:** recorded on the requester's account.
+    - **Type 8 — Request_Received:** recorded on the payer's account.
+
+    The payer can accept or decline the request. Acceptance triggers the equivalent of a Send Money flow.
+
+    **Tables involved:** `transactions`, `request_payments`
+    **Reference model:** `RequestPayment`
+  </Accordion>
+
+  <Accordion title="Merchant Payment (IDs 9 & 10)">
+    Payments made at a merchant checkout:
+
+    - **Type 9 — Payment_Sent:** recorded on the customer's account.
+    - **Type 10 — Payment_Received:** recorded on the merchant's account. This type is also used for cashier-processed transactions, where `cashier_id` on the transaction identifies the cashier who processed the payment.
+
+    **Tables involved:** `transactions`, `merchant_payments`
+    **Reference model:** `MerchantPayment`
+  </Accordion>
+
+  <Accordion title="Crypto sent / received (IDs 11 & 12)">
+    On-chain cryptocurrency transactions handled via the Block.io module:
+
+    - **Type 11 — Crypto_Sent:** user sends crypto to an external blockchain address.
+    - **Type 12 — Crypto_Received:** user receives crypto from an external address.
+
+    These transactions include a `CryptoAssetApiLog` record that stores the blockchain network and raw API payload. Crypto transactions omit several standard fields (merchant, bank, note, etc.) captured in `Transaction::$cryptoTransactionsExcludes`.
+  </Accordion>
+</AccordionGroup>
+
+## Transaction lifecycle
+
+Transactions move through a well-defined set of statuses stored in `transactions.status`:
+
+```
+Pending → Success
+        → Refund
+        → Blocked
+```
+
+| Status | Meaning |
+|--------|---------|
+| `Pending` | Transaction created, awaiting admin approval (deposits, withdrawals) or immediate processing (transfers) |
+| `Success` | Transaction completed and wallets updated |
+| `Refund` | Transaction reversed; a refund reference links back to the original |
+| `Blocked` | Transaction flagged and halted by an admin |
+
+Admin-approval transactions (deposits and withdrawals) start as `Pending`. Peer-to-peer transactions (transfers, payment requests, merchant payments) are usually processed immediately and set to `Success` in the same request.
+
+To update a transaction's status programmatically:
+
+```php
+Transaction::updateTransactionStatus($transactionId, 'Success');
+```
+
+## Transaction record structure
+
+Every transaction row captures the full financial context at the moment of processing:
+
+```sql
+-- transactions table (key columns)
+user_id                INT    -- the initiating user
+end_user_id            INT    -- the recipient user (if applicable)
+currency_id            INT    -- the transaction currency
+payment_method_id      INT    -- deposit/withdrawal payment method
+merchant_id            INT    -- merchant (for Payment_Sent/Received)
+bank_id                INT    -- bank (for bank withdrawal/deposit)
+uuid                   VARCHAR(13)  -- unique public transaction ID
+transaction_reference_id INT  -- FK to the type-specific detail table
+transaction_type_id    INT    -- which of the 12 types
+user_type              VARCHAR(15)  -- 'registered' or 'unregistered'
+subtotal               DECIMAL(20,8)  -- amount before fees
+percentage             DECIMAL(20,8)  -- fee rate applied
+charge_percentage      DECIMAL(20,8)  -- percentage-based fee amount
+charge_fixed           DECIMAL(20,8)  -- fixed fee amount
+total                  DECIMAL(20,8)  -- final amount including fees
+note                   TEXT           -- optional user note
+status                 VARCHAR(11)    -- Pending, Success, Refund, Blocked
+```
+
+## Fees
+
+Fee rules are stored in the `fees_limits` table and scoped to a combination of currency, transaction type, and payment method.
+
+```sql
+-- fees_limits table
+currency_id          INT    -- which currency this rule applies to
+transaction_type_id  INT    -- which transaction type
+payment_method_id    INT    -- which payment method (nullable = applies to all)
+charge_percentage    DECIMAL(20,8)  -- e.g. 1.5 for 1.5%
+charge_fixed         DECIMAL(20,8)  -- flat fee in the transaction currency
+min_limit            DECIMAL(20,8)  -- minimum allowed transaction amount
+max_limit            DECIMAL(20,8)  -- maximum allowed transaction amount
+processing_time      VARCHAR        -- human-readable processing time note
+has_transaction      VARCHAR(3)     -- 'Yes' if this rule is actively applied
+```
+
+### Fee calculation
+
+For fiat currencies, the total fee charged is:
+
+```
+total_fee = charge_percentage + charge_fixed
+total     = subtotal + total_fee
+```
+
+For crypto currencies, only `charge_fixed` is applied (the percentage component is ignored):
+
+```
+total_fee = charge_fixed
+total     = subtotal + charge_fixed
+```
+
+This is reflected in `Transaction::getTransactionDetails()`:
+
+```php
+if ($transaction->currency->type != 'fiat') {
+    $transaction->totalFees = moneyFormat(
+        $currency->symbol,
+        formatNumber($transaction->charge_fixed, $currency_id)
+    );
+} else {
+    $transaction->totalFees = moneyFormat(
+        $currency->symbol,
+        formatNumber($transaction->charge_percentage + $transaction->charge_fixed, $currency_id)
+    );
+}
+```
+
+### Fee revenue reporting
+
+The admin panel tracks revenue generated from fees. The `Transaction::getRevenuesList()` method filters for successful transactions where at least one fee component is non-zero, enabling per-currency and per-type revenue breakdowns.
+
+## Disputes
+
+Any completed transaction can have a dispute raised against it. A `Dispute` record links to a `transaction_id`, and discussion threads are stored in `DisputeDiscussion`. Both admins and users can participate in a dispute thread.

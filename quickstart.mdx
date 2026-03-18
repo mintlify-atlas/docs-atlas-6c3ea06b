@@ -1,80 +1,148 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get DossPanels running and make your first transaction in under 15 minutes."
 ---
 
-## Get started in three steps
+This guide walks you through cloning the repository, configuring the environment, and completing your first transfer between two users.
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Clone the repository">
+    Clone the DossPanels source to your local machine or server:
 
-### Step 1: Set up your local environment
+    ```bash
+    git clone <your-repository-url> dosspanels
+    cd dosspanels
+    ```
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Install PHP dependencies">
+    Install all Composer packages, including Laravel Passport, Sanctum, Firebase, and the module system:
 
-### Step 2: Deploy your changes
+    ```bash
+    composer install
+    ```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    <Note>
+      DossPanels requires PHP 8.1 or higher. Run `php -v` to confirm your version before proceeding.
+    </Note>
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="Configure the environment">
+    Copy the example environment file and generate an application key:
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
 
-### Step 3: Go live
+    Open `.env` and update the following values at minimum:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    ```env
+    APP_NAME=DossPanels
+    APP_URL=http://your-domain.com
+    APP_INSTALL=true
 
-## Next steps
+    DB_DATABASE=dosspanels
+    DB_USERNAME=your_db_user
+    DB_PASSWORD=your_db_password
+    ```
 
-Now that you have your docs running, explore these key features:
+    <Info>
+      Set `APP_INSTALL=true` so the application bootstraps transaction type and payment method constants on startup. Without this, the platform will not function correctly.
+    </Info>
+  </Step>
 
-<CardGroup cols={2}>
+  <Step title="Run migrations and seed the database">
+    Create all tables and populate them with the required seed data, including the default admin account, transaction types, currencies, and roles:
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+    ```bash
+    php artisan migrate --seed
+    ```
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+    This inserts the default admin account with the credentials:
+    - **Email:** `admin@techvill.net`
+    - **Password:** `123456`
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+    <Warning>
+      Change the default admin password immediately after your first login.
+    </Warning>
+  </Step>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+  <Step title="Install Laravel Passport">
+    Passport provides the OAuth2 server that powers API authentication:
 
-</CardGroup>
+    ```bash
+    php artisan passport:install
+    ```
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+    This generates the encryption keys and creates the default OAuth clients in the database.
+  </Step>
+
+  <Step title="Create the storage symlink">
+    Link the public storage directory so uploaded files (avatars, logos, bank documents) are accessible:
+
+    ```bash
+    php artisan storage:link
+    ```
+  </Step>
+
+  <Step title="Start the development server">
+    ```bash
+    php artisan serve
+    ```
+
+    The application is now available at `http://localhost:8000`.
+  </Step>
+
+  <Step title="Log in to the admin panel">
+    Navigate to `http://localhost:8000/admin` and sign in with:
+    - **Email:** `admin@techvill.net`
+    - **Password:** `123456`
+
+    From the admin dashboard you can manage currencies, users, fees, and transactions.
+  </Step>
+
+  <Step title="Create your first currency">
+    Before users can hold wallets, at least one active currency must exist.
+
+    1. In the admin panel, go to **Currency Management**.
+    2. Click **Add Currency**.
+    3. Set the type to **Fiat**, enter a name (e.g. `US Dollar`), symbol (`$`), and code (`USD`).
+    4. Set the rate to `1` for the base currency.
+    5. Set status to **Active** and mark it as the default currency.
+    6. Save the currency.
+  </Step>
+
+  <Step title="Register the first user">
+    Navigate to the user registration page at `http://localhost:8000/register` and create a new account. Alternatively, create a user directly from the admin panel under **User Management > Add User**.
+
+    When a user registers, DossPanels automatically creates a wallet for the default currency with a starting balance of `0`.
+  </Step>
+
+  <Step title="Make your first transfer">
+    1. Log in as the user you just created.
+    2. First, add funds by navigating to **Deposit** and submitting a deposit request. An admin must approve it.
+    3. Log back into the admin panel and approve the pending deposit under **Deposits**.
+    4. Return to the user dashboard and navigate to **Send Money**.
+    5. Enter a recipient email or phone number, an amount, and submit.
+
+    The transaction appears in both users' transaction histories with status `Success`.
+  </Step>
+</Steps>
+
+## What's next
+
+<Columns cols={2}>
+  <Card title="Installation" icon="server" href="/installation">
+    Full server requirements, nginx/Apache configuration, and queue worker setup.
+  </Card>
+  <Card title="Architecture" icon="diagram-project" href="/concepts/architecture">
+    Understand the three-tier structure: web app, admin panel, and REST API.
+  </Card>
+  <Card title="User roles" icon="users" href="/concepts/user-roles">
+    Learn about admin roles, customer types, and the permissions system.
+  </Card>
+  <Card title="Transaction types" icon="arrow-right-arrow-left" href="/concepts/transaction-types">
+    Explore all twelve transaction types and how the fee system works.
+  </Card>
+</Columns>

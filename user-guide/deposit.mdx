@@ -1,0 +1,141 @@
+---
+title: "Deposit"
+description: "Add funds to your DossPanel wallet using Bank Transfer, Stripe, PayPal, CoinPayments, or other enabled payment methods."
+---
+
+Depositing funds adds money to your DossPanel wallet so you can send payments, pay invoices, or exchange currencies. The available deposit methods depend on which payment gateways your administrator has enabled.
+
+## Available deposit methods
+
+<CardGroup cols={2}>
+  <Card title="Bank Transfer" icon="building-columns">
+    Transfer from your bank account to the platform's listed bank. Requires manual confirmation by an admin.
+  </Card>
+  <Card title="Stripe" icon="credit-card">
+    Pay with a credit or debit card. Processed instantly via the Stripe payment API.
+  </Card>
+  <Card title="PayPal" icon="paypal">
+    Pay using your PayPal account balance or linked card.
+  </Card>
+  <Card title="CoinPayments" icon="bitcoin">
+    Deposit cryptocurrency. Supports a wide range of coins including BTC, ETH, and more.
+  </Card>
+</CardGroup>
+
+## Starting a deposit
+
+<Steps>
+  <Step title="Open Deposit">
+    Click **Deposit** in the navigation or go to `/deposit`.
+  </Step>
+
+  <Step title="Select currency">
+    Choose the currency you want to deposit. Only currencies that have an active Deposit fees/limits configuration are shown in the dropdown.
+  </Step>
+
+  <Step title="Select payment method">
+    Choose the payment method. Only methods activated for the selected currency and deposit flow appear. The system shows the method-specific fees.
+  </Step>
+
+  <Step title="Enter amount">
+    Enter the amount to deposit. The system enforces minimum and maximum limits configured by the administrator. An error is shown if the amount is outside the allowed range.
+  </Step>
+
+  <Step title="Review fees and total">
+    The confirmation page shows:
+    - Deposit amount
+    - Percentage fee (`amount × charge_percentage%`)
+    - Fixed fee (`charge_fixed`)
+    - Total amount (amount + fees)
+    - Selected payment method
+  </Step>
+
+  <Step title="Complete payment">
+    Proceed to the payment gateway specific to your chosen method (see method-specific steps below).
+  </Step>
+</Steps>
+
+## Stripe (credit / debit card)
+
+<Steps>
+  <Step title="Enter card details">
+    On the Stripe payment page, enter your card number, expiry month, expiry year, and CVC.
+  </Step>
+
+  <Step title="Card charged">
+    DossPanel calls the Stripe API with your card details. A payment intent is created, then confirmed.
+  </Step>
+
+  <Step title="Wallet credited">
+    On a successful charge, the deposit record is created with `status = 'Success'` and your wallet balance is updated immediately. You are redirected to the deposit success page.
+  </Step>
+</Steps>
+
+<Note>
+Stripe card details are sent directly to Stripe's secure API and are never stored on DossPanel's servers.
+</Note>
+
+## PayPal
+
+<Steps>
+  <Step title="Redirect to PayPal">
+    You are shown a PayPal button. Click it to open the PayPal checkout flow in a secure popup or redirect.
+  </Step>
+
+  <Step title="Authorize payment">
+    Log into your PayPal account and authorize the payment amount.
+  </Step>
+
+  <Step title="Wallet credited">
+    On success, PayPal redirects back to DossPanel where the deposit is recorded and your wallet balance is updated.
+  </Step>
+</Steps>
+
+## Bank Transfer
+
+<Steps>
+  <Step title="View bank details">
+    After selecting Bank as the payment method, the bank details page shows the platform's bank account: bank name, account name, and account number for the selected currency.
+  </Step>
+
+  <Step title="Make the bank transfer">
+    Use your own banking app or branch to transfer the required amount to the listed account. Use your name or account number as a reference.
+  </Step>
+
+  <Step title="Await admin confirmation">
+    Bank deposits require manual verification by an administrator. The deposit is held as `Pending` until the admin confirms receipt and approves it, at which point your wallet is credited.
+  </Step>
+</Steps>
+
+<Warning>
+Bank transfer processing times vary by country and institution. Do not transfer more or less than the exact amount shown — discrepancies can delay or prevent crediting.
+</Warning>
+
+## CoinPayments (cryptocurrency)
+
+<Steps>
+  <Step title="Select a coin">
+    After selecting CoinPayments as the method, you are shown the list of accepted cryptocurrency coins. Select the coin you want to send.
+  </Step>
+
+  <Step title="Send to the wallet address">
+    DossPanel generates a unique payment address and QR code via the CoinPayments API. Send the exact amount of cryptocurrency to that address from your external wallet.
+  </Step>
+
+  <Step title="Wait for confirmations">
+    The deposit status is `Pending` until the required number of blockchain confirmations is reached (shown on the summary page). Once confirmed, the deposit is credited to your DossPanel wallet.
+  </Step>
+</Steps>
+
+## Processing times
+
+| Method | Typical processing time |
+|---|---|
+| Stripe | Instant |
+| PayPal | Instant |
+| Bank Transfer | 1–3 business days (admin review required) |
+| CoinPayments | Depends on blockchain confirmations (minutes to hours) |
+
+## Admin notification
+
+After every successful deposit, an email notification is sent to the platform administrator via `NotifyAdminOnDepositMailService`.

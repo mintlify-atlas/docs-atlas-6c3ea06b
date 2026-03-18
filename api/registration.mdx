@@ -1,0 +1,162 @@
+---
+title: "Registration"
+description: "Register new user accounts via the DossPanels API."
+---
+
+## Register a new user
+
+```
+POST /api/registration
+```
+
+Creates a new user account. No authentication required.
+
+### Request parameters
+
+<ParamField body="first_name" type="string" required>
+  User's first name.
+</ParamField>
+
+<ParamField body="last_name" type="string" required>
+  User's last name.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  User's email address. Must be unique across the platform.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Password. Minimum 8 characters.
+</ParamField>
+
+<ParamField body="password_confirmation" type="string" required>
+  Must match the `password` field.
+</ParamField>
+
+<ParamField body="phone" type="string" required>
+  Phone number in E.164 format (e.g. `+12025551234`).
+</ParamField>
+
+<ParamField body="country_id" type="integer" required>
+  ID of the user's country from the countries table.
+</ParamField>
+
+<ParamField body="currency_id" type="integer">
+  Default wallet currency ID. Uses platform default if omitted.
+</ParamField>
+
+<ParamField body="carrierCode" type="string">
+  Phone carrier/country code (e.g. `+1`).
+</ParamField>
+
+<ParamField body="formattedPhone" type="string">
+  Pre-formatted phone number string.
+</ParamField>
+
+### Response
+
+<ResponseField name="status" type="integer">
+  `200` on success.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Success or error message.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="data properties">
+    <ResponseField name="access_token" type="string">
+      Bearer token for immediate use after registration.
+    </ResponseField>
+    <ResponseField name="user" type="object">
+      Newly created user profile.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://yourdomain.com/api/registration \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "jane@example.com",
+    "password": "Secure1234!",
+    "password_confirmation": "Secure1234!",
+    "phone": "+12025551234",
+    "country_id": 1
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://yourdomain.com/api/registration', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    first_name: 'Jane',
+    last_name: 'Doe',
+    email: 'jane@example.com',
+    password: 'Secure1234!',
+    password_confirmation: 'Secure1234!',
+    phone: '+12025551234',
+    country_id: 1
+  })
+});
+```
+</CodeGroup>
+
+## Validation endpoints
+
+Use these before submitting the registration form to validate uniqueness in real time.
+
+### Check duplicate email
+
+```
+POST /api/registration/duplicate-email-check
+```
+
+<ParamField body="email" type="string" required>
+  Email address to check.
+</ParamField>
+
+Returns `200` with `exists: true` or `exists: false`.
+
+### Check duplicate phone
+
+```
+POST /api/registration/duplicate-phone-number-check
+```
+
+<ParamField body="phone" type="string" required>
+  Phone number to check.
+</ParamField>
+
+### Get default country
+
+```
+GET /api/registration/get-default-country-short-name
+```
+
+Returns the platform's configured default country short name (e.g. `"US"`). Useful for pre-filling the country field.
+
+### Get cashier details
+
+```
+GET /api/cashier/{id}
+```
+
+Returns details for a specific cashier account (used when registering a cashier sub-account).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | path integer | Cashier user ID |
+
+## Error responses
+
+| Status | Meaning |
+|--------|---------|
+| `422` | Validation failed — check `errors` field for field-level messages |
+| `409` | Email or phone already registered |

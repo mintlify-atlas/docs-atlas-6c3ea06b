@@ -1,0 +1,102 @@
+---
+title: "KYC Verification"
+description: "Complete identity and address verification to unlock higher limits and full platform access."
+---
+
+Know Your Customer (KYC) verification confirms your identity and address. Completing KYC is often required before you can access higher transaction limits, certain payment methods, or withdrawal features.
+
+## Why KYC is required
+
+DossPanel operates as a financial platform subject to anti-money-laundering (AML) and regulatory requirements. Verifying your identity and address helps the platform:
+
+- Confirm you are who you say you are.
+- Comply with financial regulations in applicable jurisdictions.
+- Protect all users from fraudulent activity.
+- Unlock higher transaction limits or specific features gated behind verified status.
+
+## Verification types
+
+DossPanel uses two separate verification flows, both stored in the `document_verifications` table with a `verification_type` field.
+
+<CardGroup cols={2}>
+  <Card title="Identity Verification" icon="id-card">
+    Confirm your government-issued identity. Required to set your `identity_verified` status to `true`.
+  </Card>
+  <Card title="Address Verification" icon="house">
+    Confirm your residential address with a supporting document.
+  </Card>
+</CardGroup>
+
+## Accepted identity documents
+
+The `identity_type` field on the `DocumentVerification` model records which document type you submitted. Accepted options include:
+
+- **National ID**
+- **Passport**
+- **Driver's License**
+
+## Accepted address documents
+
+For address proof, provide a recent document (typically less than 3 months old) that shows your full name and residential address:
+
+- Utility bill (electricity, water, gas, internet)
+- Bank or credit card statement
+- Official government correspondence
+
+## How to submit identity verification
+
+<Steps>
+  <Step title="Navigate to Identity Verification">
+    Go to **Profile → Personal ID** or navigate to `/profile/personal-id`.
+  </Step>
+
+  <Step title="Select your document type">
+    Choose from the `identity_type` dropdown: National ID, Passport, or Driver's License.
+  </Step>
+
+  <Step title="Enter your document number">
+    Type your full document number in the `identity_number` field. This field is required.
+  </Step>
+
+  <Step title="Upload the document file">
+    Attach a clear scan or photo of your document. Accepted file formats are: `pdf`, `png`, `jpg`, `jpeg`, `gif`, `bmp`. The file is stored in `uploads/user-documents/identity-proof-files/`.
+  </Step>
+
+  <Step title="Submit for review">
+    Click **Submit**. Your verification is saved with `status = 'pending'` and your `identity_verified` flag is set to `false` while the review is underway. You will receive a notification when the administrator processes your submission.
+  </Step>
+</Steps>
+
+<Note>
+If you submit a new document while a previous submission is pending or rejected, the old file is replaced and the status resets to `pending`.
+</Note>
+
+## Verification statuses
+
+| Status | Meaning |
+|---|---|
+| `pending` | Document received; awaiting admin review |
+| `approved` | Verification accepted; limits and features unlocked |
+| `rejected` | Document not accepted; you may resubmit with a corrected document |
+
+## Address verification
+
+The address verification flow is separate from identity verification but follows the same process. Navigate to the address proof section of your profile, upload a supported document, and wait for admin approval. The record is stored in `document_verifications` with `verification_type = 'address'`.
+
+## Frequently asked questions
+
+<Accordion title="How long does verification take?">
+Verification is processed manually by administrators. Typical review times vary but you will receive an email or platform notification once the review is complete.
+</Accordion>
+
+<Accordion title="My document was rejected — what do I do?">
+Resubmit with a clearer image or a different document type. Ensure the document is not expired, all four corners are visible, and the name matches your registered account name.
+</Accordion>
+
+<Accordion title="Do I need to verify my address separately from identity?">
+Yes. Identity and address are two separate verification types stored as distinct records. You may be required to complete both depending on your jurisdiction or the features you want to access.
+</Accordion>
+
+<Accordion title="Can I update my document after it has been approved?">
+Yes. Submitting a new document resets your `identity_verified` flag to `false` and the status to `pending` until the new document is reviewed.
+</Accordion>

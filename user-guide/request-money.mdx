@@ -1,0 +1,95 @@
+---
+title: "Request Money"
+description: "Send a payment request to another user and track acceptance or rejection."
+---
+
+The Request Money feature lets you create a payment request and send it to another DossPanel user. The recipient reviews the request and chooses to accept or block it.
+
+## Creating a payment request
+
+<Steps>
+  <Step title="Open Request Money">
+    Navigate to **Send / Receive → Request** or go to `/request_payment/add`.
+  </Step>
+
+  <Step title="Enter recipient details">
+    Identify the person you are requesting money from. Depending on the platform configuration, you can enter their:
+
+    - **User ID** (numeric portion, without `ZG-` prefix)
+    - **Email address**
+    - **Phone number** (international format, e.g. `+12015550123`)
+
+    You cannot send a request to yourself. If the recipient is suspended or inactive, an error message prevents submission.
+  </Step>
+
+  <Step title="Select currency and amount">
+    Choose the request currency from the active currencies that have a fees/limits configuration for Request transactions. Enter the amount. The decimal precision adapts to whether the currency is fiat or crypto.
+  </Step>
+
+  <Step title="Add a note">
+    A note is required. Describe the reason for the request (e.g. *"Dinner split 15 March"*). This note is visible to the recipient.
+  </Step>
+
+  <Step title="Review and confirm">
+    The confirmation page shows the recipient name, currency symbol, amount, and note. Review the details carefully.
+  </Step>
+
+  <Step title="Enter your PIN">
+    Enter your account PIN (your login password) in the OTP-style input to authorize the request. The system verifies it with `Hash::check()`. If the PIN matches, the request is created with status `Pending`.
+  </Step>
+
+  <Step title="Request created">
+    The request is saved. The recipient receives an email and/or SMS notification. You are shown a success page with the request transaction ID.
+  </Step>
+</Steps>
+
+## Request statuses
+
+| Status | Meaning |
+|---|---|
+| Pending | Request sent; awaiting recipient action |
+| Success | Recipient accepted and funds transferred |
+| Blocked | Request cancelled by either the creator or the recipient |
+
+## Accepting an incoming request
+
+When another user requests money from you, the request appears in your **Transactions** list.
+
+<Steps>
+  <Step title="Find the request">
+    Go to your transaction list or dashboard. Incoming payment requests are shown with an **Accept** option.
+  </Step>
+
+  <Step title="Review the request">
+    The accept page shows the requester's details, the amount, currency, and fees that will be deducted from your wallet.
+  </Step>
+
+  <Step title="Check your balance">
+    The system verifies you have sufficient balance including fees. If the requested currency wallet does not exist on your account, an error states *"You don't have the requested currency!"*
+  </Step>
+
+  <Step title="Enter your PIN and confirm">
+    Enter your PIN to authorize the payment. Once confirmed, the funds (amount + fee) are deducted from your wallet and transferred to the requester.
+  </Step>
+</Steps>
+
+## Cancelling a request
+
+Both the **creator** and the **recipient** can cancel (block) a pending request:
+
+- The creator can cancel from their sent requests list.
+- The recipient can cancel from their incoming requests list.
+
+Cancelling sets all related transaction records and the `RequestPayment` record to `Blocked` status. Both parties receive an email or SMS notification confirming the cancellation.
+
+## Fees on accepted requests
+
+Fees are applied to the **recipient** (the person accepting the request), not to the requester. The fee structure follows the same percentage + fixed model as send money, configured per currency in the Fees & Limits panel.
+
+## Requests to unregistered users
+
+You can send a request to an email address or phone number that is not yet registered. The pending request is stored and when that person registers, the request is linked to their new account automatically.
+
+<Tip>
+Always double-check the recipient identifier before submitting. Once a request is accepted and the transfer is processed, it cannot be reversed without the recipient's cooperation.
+</Tip>

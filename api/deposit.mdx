@@ -1,0 +1,194 @@
+---
+title: "Deposit"
+description: "Add funds to a user wallet via bank, card, PayPal, or cryptocurrency."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+DossPanels supports four deposit methods:
+- **Bank transfer** — manual bank deposit awaiting admin approval
+- **Stripe** — instant card payment
+- **PayPal** — PayPal account payment
+- **CoinPayments** — cryptocurrency payment
+
+## Get deposit currencies
+
+```
+GET /api/get-deposit-currency-list
+```
+
+Returns all currencies available for deposit.
+
+## Get deposit banks
+
+```
+GET /api/get-deposit-bank-list
+```
+
+Returns bank accounts configured for manual deposit.
+
+## Get fee and limit details
+
+```
+POST /api/fees-limit-currency-payment-methods-is-active-payment-methods-list
+```
+
+Returns fee rules and min/max limits for deposit based on currency and payment method.
+
+<ParamField body="currency_id" type="integer" required>
+  Currency to deposit.
+</ParamField>
+
+```
+GET /api/get-deposit-details-with-amount-limit-check
+```
+
+Validates an entered amount against limits and returns the fee breakdown.
+
+<ParamField query="currency_id" type="integer" required>
+  Currency ID.
+</ParamField>
+
+<ParamField query="payment_method_id" type="integer" required>
+  Payment method ID.
+</ParamField>
+
+<ParamField query="amount" type="number" required>
+  Amount to deposit.
+</ParamField>
+
+---
+
+## Bank deposit
+
+```
+POST /api/deposit/get-bank-detail
+```
+
+Get bank account details for a specific bank deposit.
+
+<ParamField body="bank_id" type="integer" required>
+  Bank ID.
+</ParamField>
+
+```
+POST /api/deposit/bank-payment-store
+```
+
+Submit a bank deposit request.
+
+<ParamField body="currency_id" type="integer" required>
+  Deposit currency.
+</ParamField>
+
+<ParamField body="payment_method_id" type="integer" required>
+  Payment method ID for bank.
+</ParamField>
+
+<ParamField body="bank_id" type="integer" required>
+  Bank ID.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to deposit.
+</ParamField>
+
+<ParamField body="file" type="file">
+  Optional payment receipt file upload.
+</ParamField>
+
+<Note>
+Bank deposits are **pending** until an admin approves them in the admin panel.
+</Note>
+
+---
+
+## Stripe deposit
+
+```
+POST /api/deposit/stripe-make-payment
+```
+
+<ParamField body="currency_id" type="integer" required>
+  Deposit currency.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to deposit.
+</ParamField>
+
+<ParamField body="stripe_token" type="string" required>
+  Stripe payment token (from Stripe.js or Stripe mobile SDK).
+</ParamField>
+
+Returns a `payment_intent_client_secret` for 3D Secure confirmation.
+
+```
+POST /api/deposit/stripe-confirm-payment
+```
+
+<ParamField body="payment_intent_id" type="string" required>
+  Stripe PaymentIntent ID returned by the previous step.
+</ParamField>
+
+---
+
+## PayPal deposit
+
+```
+POST /api/deposit/get-paypal-info
+```
+
+Returns PayPal payment configuration for the given amount.
+
+<ParamField body="amount" type="number" required>
+  Deposit amount.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency ID.
+</ParamField>
+
+```
+POST /api/deposit/paypal-payment-store
+```
+
+Complete a PayPal payment after user authorizes on PayPal.
+
+<ParamField body="paypal_payment_id" type="string" required>
+  PayPal payment ID returned after authorization.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency ID.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Deposit amount.
+</ParamField>
+
+---
+
+## CoinPayments (crypto) deposit
+
+```
+POST /api/deposit/coinpayments-payment-store
+```
+
+<ParamField body="currency_id" type="integer" required>
+  Crypto currency ID (must be a crypto-type currency).
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to deposit.
+</ParamField>
+
+<ParamField body="payment_method_id" type="integer" required>
+  CoinPayments payment method ID.
+</ParamField>
+
+Returns a payment address and QR code for the crypto payment. The deposit is credited automatically via the CoinPayments IPN webhook when confirmed on-chain.

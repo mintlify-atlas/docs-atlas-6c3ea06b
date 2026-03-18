@@ -1,0 +1,133 @@
+---
+title: "Invoices"
+description: "Create, send, and manage invoices for goods and services directly from your DossPanel account."
+---
+
+DossPanel's invoice module lets you generate professional invoices, send them to other users, track payment status, and download PDFs for your records.
+
+## Creating an invoice
+
+<Steps>
+  <Step title="Open Invoices">
+    Navigate to **Invoices** in the main menu or go to `/invoices`.
+  </Step>
+
+  <Step title="Click Create Invoice">
+    Click the **Create** button to open the invoice builder at `/invoices/create`.
+  </Step>
+
+  <Step title="Fill in the Bill From section">
+    Enter your billing details:
+
+    | Field | Description |
+    |---|---|
+    | Bill From Name | Your name or business name |
+    | Phone Number | Your contact phone number |
+    | Description | Short description of your business or role |
+  </Step>
+
+  <Step title="Fill in the Bill To section">
+    Select the recipient from the user list. DossPanel fetches the recipient's full name automatically. The phone number is resolved from the recipient's account (`formattedPhone`).
+
+    | Field | Description |
+    |---|---|
+    | Recipient | Select from registered DossPanel users |
+    | Bill To Description | Description relevant to the recipient |
+  </Step>
+
+  <Step title="Add invoice metadata">
+    Enter the administrative details:
+
+    | Field | Description |
+    |---|---|
+    | Invoice ID | Unique reference number for this invoice |
+    | Order Number | Related order number (if applicable) |
+    | Shipment Number | Shipment tracking reference (if applicable) |
+    | Invoice Date | Issue date of the invoice |
+    | Due Date | Payment deadline |
+    | Shipment Date | Expected shipment or delivery date |
+  </Step>
+
+  <Step title="Add line items">
+    Add one or more items to the invoice. For each item provide:
+    - Item Name
+    - Item Description
+    - Quantity and unit price
+
+    The system calculates the line subtotal automatically.
+  </Step>
+
+  <Step title="Set financial totals">
+    Review and confirm the financial breakdown:
+
+    | Field | Description |
+    |---|---|
+    | Subtotal | Sum of all line items |
+    | Tax | Tax amount (if applicable) |
+    | Discount | Discount to apply |
+    | Late Fee | Any late payment charge |
+    | Total | Final payable amount |
+    | Currency | Currency code for the invoice |
+  </Step>
+
+  <Step title="Add notes">
+    Enter any additional notes, payment terms, or instructions for the recipient in the **Notes** field.
+  </Step>
+
+  <Step title="Save the invoice">
+    Click **Submit**. The invoice is saved with `status = 'unpaid'` and assigned to both the creator and recipient.
+  </Step>
+</Steps>
+
+## Invoice statuses
+
+| Status | Meaning |
+|---|---|
+| `unpaid` | Invoice created; payment not yet received |
+| `paid` | Invoice has been paid |
+| `overdue` | Due date has passed and payment has not been received |
+
+## Sending an invoice
+
+After creation, the recipient can be notified via email. The invoice stores the recipient's email and phone number, enabling the platform to send a notification directing them to the invoice payment page.
+
+## Paying an invoice
+
+Recipients who receive an invoice notification can:
+
+1. Click the invoice link in the email.
+2. Review the invoice details and total due.
+3. Choose a payment method (Stripe, wallet transfer, etc.) to pay the invoice amount.
+4. Confirm payment — the invoice status updates to `paid`.
+
+## My Invoices list
+
+All invoices you have created are listed at `/invoices` (the `viewAll` method). Each row shows:
+
+- Invoice ID and order number
+- Recipient name
+- Total and currency
+- Status
+- Due date
+
+## Downloading a PDF
+
+From the invoice detail page, click the **Download PDF** button to generate and download a formatted PDF version of the invoice for your records or for sharing offline.
+
+<Tip>
+Use the Order Number and Shipment Number fields to cross-reference invoices with your order management or shipping system.
+</Tip>
+
+## Frequently asked questions
+
+<Accordion title="Can I edit an invoice after creating it?">
+Edit functionality depends on the invoice status. Invoices that have already been paid should not be modified — create a credit note or a new corrected invoice instead.
+</Accordion>
+
+<Accordion title="What happens if the due date passes?">
+The invoice status can be updated to `overdue`. Late fees configured at the time of creation will appear on the invoice. Contact the recipient to arrange payment.
+</Accordion>
+
+<Accordion title="Is the recipient notified automatically?">
+The platform can send an email to the recipient using the `billToPhoneNumber` and recipient email on file when the invoice is created. Check with your administrator whether automatic invoice emails are enabled.
+</Accordion>

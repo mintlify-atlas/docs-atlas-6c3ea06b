@@ -1,0 +1,103 @@
+---
+title: "Fees & Limits"
+description: "Configure transaction fees (percentage and fixed), minimum and maximum limits, and enable transaction types per currency and payment method."
+---
+
+Fees and limits in DossPanels are defined at the intersection of **currency**, **transaction type**, and (for deposits/withdrawals) **payment method**. They are managed from the currency detail page under the **Fees & Limits** tab.
+
+## Accessing Fees & Limits
+
+Navigate to **Settings → Currencies**, select a currency, then click a transaction type tab:
+
+- **Deposit**
+- **Withdrawal**
+- **Transfer**
+- **Exchange**
+- **Request Payment**
+
+The URL pattern is `/admin/settings/feeslimit/{tab}/{currency_id}`.
+
+## Fee Fields
+
+Each fee/limit record in the `fees_limits` table contains the following fields:
+
+| Field | Description |
+|---|---|
+| `currency_id` | The currency this rule applies to |
+| `transaction_type_id` | Which transaction type (Deposit, Withdrawal, etc.) |
+| `payment_method_id` | The payment method (for deposit/withdrawal only) |
+| `charge_percentage` | Fee as a percentage of the transaction amount |
+| `charge_fixed` | Fixed fee added to every transaction |
+| `min_limit` | Minimum transaction amount; defaults to `1.00` if left blank |
+| `max_limit` | Maximum transaction amount; leave empty for no upper limit |
+| `has_transaction` | `Yes` or `No`; enables the currency+payment method combination |
+| `processing_time` | Informational field shown to users |
+
+## Configuring Deposit and Withdrawal Limits
+
+Deposit and withdrawal fees are set **per payment method**. The form shows all active payment methods eligible for that currency type:
+
+- **Fiat currencies** use the payment methods listed in `getPaymoneySettings('payment_methods')['web']['fiat']['deposit']`.
+- **Crypto currencies** use the crypto deposit methods.
+
+<Steps>
+  <Step title="Select the currency and tab">
+    Go to **Settings → Currencies → [Currency] → Deposit** (or Withdrawal).
+  </Step>
+  <Step title="Fill in values per payment method">
+    For each listed payment method, enter:
+    - Percentage fee
+    - Fixed fee
+    - Minimum limit
+    - Maximum limit (optional)
+    - Toggle **Has Transaction** to enable or disable this combination
+  </Step>
+  <Step title="Save">
+    Click **Save**. Existing records are updated; missing records are created.
+  </Step>
+</Steps>
+
+<Note>
+  For the **default currency**, `has_transaction` is automatically set to `Yes` regardless of the toggle.
+</Note>
+
+## Configuring Transfer, Exchange, and Request Payment Limits
+
+These transaction types do not use a payment method selector — there is one fee/limit record per currency. The form shows a single set of fields:
+
+- Percentage fee
+- Fixed fee
+- Minimum limit
+- Maximum limit
+
+## Enabling a Transaction Type for a Currency
+
+Setting `has_transaction = Yes` for a currency+payment method combination makes that deposit/withdrawal option visible and usable in the user-facing wallet. Without this, the payment method will not appear for that currency.
+
+## Fee Calculation
+
+At transaction time, fees are calculated as:
+
+```
+total = amount + charge_fixed + (amount × charge_percentage / 100)
+```
+
+For a deposit of $100 with `charge_percentage = 2` and `charge_fixed = 0.50`:
+
+```
+total = 100 + 0.50 + (100 × 2 / 100) = 102.50
+```
+
+## Limit Validation
+
+When a user initiates a transaction, the system validates:
+
+1. The amount is greater than or equal to `min_limit`.
+2. If `max_limit` is set, the amount is less than or equal to `max_limit`.
+3. For withdrawals, the user's wallet balance is sufficient to cover `amount + charge_fixed + percentage_fee`.
+
+Failing any check returns an error message to the user before the transaction is created.
+
+## Per-Merchant Fee Overrides
+
+Merchant fees are configured separately on the **Merchant** record itself (the `fee` column). This overrides the platform default for that merchant's payment collection transactions. Merchant group fees can also cascade to individual merchants — see [Merchant Management](/admin/merchant-management).

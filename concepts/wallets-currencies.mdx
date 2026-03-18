@@ -1,0 +1,157 @@
+---
+title: "Wallets and currencies"
+description: "How DossPanels manages multi-currency wallets, fiat and crypto currency types, and exchange rates."
+---
+
+## Currencies
+
+Every monetary value in DossPanels is denominated in a `Currency` record. Currencies are configured by the administrator and can be either fiat or cryptocurrency.
+
+### Currency fields
+
+```sql
+-- currencies table
+id                      INT     PRIMARY KEY
+type                    VARCHAR(20)   -- 'fiat' or 'crypto_asset'
+name                    VARCHAR(50)   -- e.g. 'US Dollar', 'Bitcoin'
+symbol                  CHAR(10)      -- e.g. '$', '₿'
+code                    VARCHAR(21)   -- e.g. 'USD', 'BTC'
+rate                    DECIMAL(20,8) -- exchange rate relative to the base currency
+logo                    VARCHAR(100) NULLABLE
+default                 VARCHAR(3)    -- '1' for the platform default currency
+exchange_from           VARCHAR(6)    -- 'local' or 'api'
+allowed_wallet_creation VARCHAR(4)    -- 'Yes' or 'No'
+status                  VARCHAR(11)   -- 'Active' or 'Inactive'
+```
+
+### Currency types
+
+<Columns cols={2}>
+  <Card title="Fiat" icon="money-bill">
+    Standard national currencies (USD, EUR, GBP, etc.). Balances are stored with 8 decimal places but displayed according to the currency's decimal format. Exchange rates are maintained manually or fetched from an external API depending on `exchange_from`.
+  </Card>
+  <Card title="Crypto asset" icon="bitcoin-sign">
+    Cryptocurrency assets (BTC, ETH, LTC, DOGE, etc.). Identified by `type = 'crypto_asset'`. Crypto currencies can optionally have on-chain wallet addresses generated via the Block.io module. Fees for crypto transactions use only the `charge_fixed` component.
+  </Card>
+</Columns>
+
+### Exchange rates
+
+The `rate` column stores the currency's value relative to the platform's default (base) currency. A currency with `rate = 1.0` is the base.
+
+- When `exchange_from = 'local'`, the admin updates rates manually in the admin panel.
+- When `exchange_from = 'api'`, the platform fetches live rates automatically via a configured external provider.
+
+The `Currency` model exposes query scopes to filter currencies:
+
+```php
+// Get all active fiat currencies
+Currency::active()->fiat()->get();
+
+// Get a specific currency by type
+Currency::active()->type('crypto_asset')->get();
+```
+
+## Wallets
+
+Each user has one wallet per currency they hold. A wallet is a balance ledger entry — it does not correspond to a blockchain address unless the Block.io module generates one.
+
+### Wallet fields
+
+```sql
+-- wallets table
+id          INT     PRIMARY KEY
+user_id     INT     REFERENCES users(id)
+currency_id INT     REFERENCES currencies(id)
+balance     DECIMAL(20,8) DEFAULT 0.00000000
+is_default  VARCHAR(5)    DEFAULT 'No'   -- 'Yes' or 'No'
+type        VARCHAR       -- 'zing', 'doss', or other wallet type tag
+```
+
+### Default wallet
+
+Every user has exactly one wallet marked `is_default = 'Yes'`. This wallet is used as the fallback for operations where no currency is explicitly specified. The default wallet is created automatically during user registration:
+
+```php
+// Called during user creation
+public function createUserDefaultWallet($userId, $defaultCurrency)
+{
+    $wallet = new Wallet();
+    $wallet->user_id     = $userId;
+    $wallet->currency_id = $defaultCurrency;  // Platform default currency
+    $wallet->is_default  = 'Yes';
+    $wallet->type        = 'doss';
+    $wallet->save();
+}
+```
+
+### Creating additional wallets
+
+Users can add wallets for other active currencies from their dashboard. Each new wallet starts with `balance = 0` and `is_default = 'No'`:
+
+```php
+Wallet::createWallet($userId, $currencyId);
+// Creates: balance=0, is_default='No', type='zing'
+```
+
+### Wallet balance operations
+
+The `Wallet` model provides atomic increment and decrement methods used throughout the transaction processing logic:
+
+```php
+// Deduct from a user's wallet (e.g. when sending money)
+Wallet::deductAmountFromWallet($userId, $currencyId, $amount);
+
+// Credit a user's wallet (e.g. when receiving money)
+Wallet::incrementWalletBalance($userId, $currencyId, $amount);
+```
+
+Both methods use SQL-level `INCREMENT`/`DECREMENT` to avoid race conditions.
+
+### Retrieving wallet balances
+
+The `walletBalance()` method aggregates all wallet balances grouped by currency, normalising amounts to the default currency using exchange rates:
+
+```php
+$balances = (new Wallet())->walletBalance();
+// Returns: ['USD' => '1500.00', 'BTC' => '0.02350000', ...]
+```
+
+For the mobile API, `getAvailableBalance($userId)` returns each wallet's balance, currency code, symbol, and default flag:
+
+```php
+$wallets = (new Wallet())->getAvailableBalance($userId);
+```
+
+## Wallet and currency relationships
+
+The following models reference wallets and currencies:
+
+| Model | Relationship |
+|-------|--------------|
+| `User` | `hasMany(Wallet::class)` — a user owns many wallets |
+| `Wallet` | `belongsTo(Currency::class)` — a wallet is denominated in one currency |
+| `Currency` | `hasOne(Wallet::class)` — a currency can back many wallets |
+| `Transaction` | `belongsTo(Currency::class)` — every transaction is in one currency |
+| `FeesLimit` | `belongsTo(Currency::class)` — fees are defined per currency |
+| `Deposit`, `Withdrawal`, `Transfer` | Each `belongsTo(Currency::class)` |
+
+## Unregistered user transfers
+
+When a user sends money to an email address or phone number that does not yet have an account, DossPanels creates a pending transfer with `user_type = 'unregistered'`. When the recipient registers, `User::processUnregisteredUserTransfers()` runs automatically:
+
+1. Locates all pending transfers addressed to the new user's email or phone.
+2. Updates the transfer's `receiver_id` and sets status to `Success`.
+3. Creates or credits a wallet for the transferred currency.
+
+This ensures no funds are lost when sending to a new user.
+
+## Crypto wallet addresses (Block.io module)
+
+When the Block.io module is active and a currency has `type = 'crypto_asset'` with a Block.io crypto asset setting, DossPanels generates an on-chain wallet address for the user automatically on registration:
+
+```php
+$user->generateUserBlockIoWalletAddress($user);
+```
+
+This creates a `Wallet` record and calls the Block.io API to provision a deposit address, which is stored in `CryptoAssetApiLog`.

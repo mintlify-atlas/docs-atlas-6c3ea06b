@@ -1,0 +1,100 @@
+---
+title: "Currencies"
+description: "Add fiat and crypto currencies, configure exchange rates, manage logos, and control wallet creation."
+---
+
+DossPanels supports both **fiat** and **crypto** currencies. All currencies are managed from **Settings → Currencies** (`/admin/settings/currency`).
+
+## Currency List
+
+The currency list shows every configured currency with the following columns:
+
+| Column | Description |
+|---|---|
+| Name | Full currency name (e.g., US Dollar) |
+| Code | ISO code (e.g., `USD`) |
+| Symbol | Display symbol (e.g., `$`) |
+| Type | `fiat` or `crypto` |
+| Rate | Exchange rate relative to the default currency |
+| Status | `Active` or `Inactive` |
+| Default | Whether this is the platform's default currency |
+| Crypto Provider | For crypto currencies, the linked provider (e.g., BlockIo) |
+
+## Adding a Currency
+
+<Steps>
+  <Step title="Open the Add Currency form">
+    Go to **Settings → Currencies** and click **Add Currency** (`/admin/settings/add_currency`).
+  </Step>
+  <Step title="Fill in the core fields">
+    | Field | Required | Notes |
+    |---|---|---|
+    | Name | Yes | Descriptive name |
+    | Code | Yes | Unique ISO code; duplicate code+type combinations are rejected |
+    | Symbol | Yes | Display symbol |
+    | Type | Yes | `fiat` or `crypto` |
+    | Status | Yes | `Active` or `Inactive` |
+    | Logo | No | Image file; stored at `uploads/currency_logos/` |
+  </Step>
+  <Step title="Set type-specific fields">
+    **For fiat currencies:**
+    - **Rate** — required; must be greater than `0.0001`. Represents the value relative to the default currency.
+    - **Exchange From** — required; which currency this one is exchanged from.
+
+    **For crypto currencies:**
+    - **Address** — required; the deposit wallet address for this crypto asset.
+    - Rate is not required and defaults to `0`.
+  </Step>
+  <Step title="Save">
+    Click **Save**. The currency is created with `default = 0` and is immediately usable if set to `Active`.
+  </Step>
+</Steps>
+
+## Editing a Currency
+
+All fields can be edited after creation. Additional options appear on the edit form:
+
+- **Default Currency** — checking this box forces `status = Active`, `default = 1`, and requires `rate = 1`. Only one currency can be default at a time.
+- **Create Wallet for All Users** — when checked, the system creates a wallet in this currency for every active user who does not already have one. This is recorded in `currencies.allowed_wallet_creation`.
+
+<Warning>
+  The exchange rate for the default currency must always be `1`. Attempting to save a different rate for the default currency will be rejected.
+</Warning>
+
+<Warning>
+  A currency cannot be set to `Inactive` if it is already in use by an active module (e.g., a Referral or other addon module). The admin panel will display which module is blocking the status change.
+</Warning>
+
+## Deleting a Currency
+
+<Warning>
+  Currencies with existing transactions cannot be deleted. The system checks for any transaction record referencing the currency before allowing deletion. The default currency can never be deleted.
+</Warning>
+
+To delete:
+
+1. Navigate to **Settings → Currencies**.
+2. Click the **Delete** icon next to the currency.
+3. If no transactions exist and the currency is not default, it will be removed along with its logo file.
+
+## Exchange Rate Configuration
+
+Exchange rates are stored on the `currencies.rate` column. They represent how many units of a currency equal one unit of the **default currency**.
+
+**Example:** If the default currency is USD and you add EUR with a rate of `0.92`, then 1 USD = 0.92 EUR.
+
+Update rates by editing any fiat currency. The `exchange_from` field tracks where the rate data originates.
+
+## Default Currency
+
+Only one currency can be designated as the platform default. It is used as the baseline for all exchange rate calculations and is automatically assigned to new user wallets.
+
+To change the default:
+
+1. Edit the desired currency.
+2. Check the **Set as Default Currency** checkbox.
+3. Save. The previous default loses its `default = 1` flag.
+
+<Note>
+  The default currency's exchange rate is locked to `1` and cannot be changed.
+</Note>

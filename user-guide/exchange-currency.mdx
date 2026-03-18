@@ -1,0 +1,93 @@
+---
+title: "Exchange Currency"
+description: "Convert between currencies in your DossPanel wallet using the built-in exchange feature."
+---
+
+The Exchange Currency feature lets you convert funds from one currency wallet to another directly within DossPanel. Exchange rates are pulled from the `CurrencyExchange` configuration set by the administrator.
+
+## How currency exchange works
+
+When you exchange currency, the system:
+
+1. Deducts the source amount (plus fees) from your **from** wallet.
+2. Credits the converted amount to your **to** wallet.
+3. Records two transactions: an `Exchange_From` and an `Exchange_To` entry.
+
+## Before you start
+
+- Both the source and destination currencies must exist as active wallets on your account.
+- The source currency must have an active `Exchange_From` fees/limits entry.
+- You must have sufficient balance to cover the exchange amount plus fees.
+
+## How to exchange currency
+
+<Steps>
+  <Step title="Open Exchange">
+    Navigate to **Exchange** in the main menu or go to `/exchange-currency`.
+  </Step>
+
+  <Step title="Select the source currency">
+    Choose the wallet you want to exchange **from**. The dropdown lists only your active fiat-type currency wallets that have a fees/limits configuration for exchange transactions.
+  </Step>
+
+  <Step title="Select the destination currency">
+    Choose the currency you want to exchange **to**. Only currencies with an available exchange rate are shown.
+  </Step>
+
+  <Step title="Enter amount">
+    Enter the amount to convert from the source currency. The system checks minimum and maximum limits:
+
+    - Below minimum: *"Minimum amount {min}"*
+    - Above maximum: *"Minimum amount {min} and Maximum amount {max}"*
+    - Insufficient balance: an error specifying the wallet currency is shown.
+  </Step>
+
+  <Step title="Review the rate and fees">
+    The confirmation screen shows:
+    - Source amount and currency
+    - Exchange rate
+    - Converted destination amount
+    - Percentage fee (`amount × charge_percentage%`)
+    - Fixed fee (`charge_fixed`)
+    - Total deducted from source wallet
+  </Step>
+
+  <Step title="Confirm the exchange">
+    Confirm the transaction. Once processed, your source wallet is debited and your destination wallet is credited with the exchanged amount.
+  </Step>
+</Steps>
+
+## Rate preview
+
+The exchange rate is calculated before you confirm. DossPanel uses the `CurrencyExchange` model to determine the applicable rate between the selected currency pair. You always see the exact output amount before committing.
+
+## Supported currency pairs
+
+Only currency pairs that have both:
+
+- An active exchange rate in the `CurrencyExchange` table, and
+- Fees/limits configured for the `Exchange_From` transaction type
+
+...are available in the exchange interface. Contact your platform administrator if a currency pair you need is missing.
+
+## Fee structure
+
+| Fee component | Calculation |
+|---|---|
+| Percentage fee | `source_amount × charge_percentage%` |
+| Fixed fee | flat `charge_fixed` in source currency |
+| Total deducted | source_amount + percentage_fee + fixed_fee |
+
+## Frequently asked questions
+
+<Accordion title="Why can't I see a specific currency in the destination dropdown?">
+The destination currency must have an active exchange rate configured against your source currency. If it is missing, contact the platform administrator.
+</Accordion>
+
+<Accordion title="Is the exchange rate locked once I see the preview?">
+The rate shown on the confirmation page is used to process the exchange. If rates are updated while you are on the confirmation page, the new rate takes effect. Always confirm quickly to get the rate you saw.
+</Accordion>
+
+<Accordion title="Can I exchange crypto to fiat?">
+Currently the exchange interface shows only fiat-type currency wallets in the source list (`type = 'fiat'`). Check with your administrator whether crypto-to-fiat exchange is enabled on your platform instance.
+</Accordion>

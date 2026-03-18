@@ -1,0 +1,106 @@
+---
+title: "Crypto Providers"
+description: "Configure cryptocurrency provider integrations such as BlockIo, manage API keys, and monitor supported currencies and IPN webhooks."
+---
+
+Crypto providers are third-party services that process on-chain cryptocurrency transactions. DossPanels supports provider integrations via the module system, with **BlockIo** available out of the box.
+
+## Viewing Providers
+
+Navigate to **Settings → Crypto Providers** or access a specific provider at `/admin/crypto-providers/{provider_alias}`.
+
+The page lists all registered `CryptoProvider` records and displays the selected provider's configuration including its linked `CryptoAssetSetting` entries (currencies and networks).
+
+## Provider Status
+
+Each provider can be set to **Active** or **Inactive**:
+
+<Steps>
+  <Step title="Open the provider page">
+    Go to **Settings → Crypto Providers** and select a provider (e.g., **BlockIo**).
+  </Step>
+  <Step title="Toggle status">
+    Use the status toggle on the provider page. The system validates the provider name against the `crypto_providers` table before updating.
+  </Step>
+</Steps>
+
+Status is updated via a POST to `/admin/crypto-providers/status/{provider}` and returns a JSON response.
+
+## BlockIo Provider
+
+BlockIo is a hosted wallet API that supports Bitcoin, Litecoin, Dogecoin, and other assets. When BlockIo is **Active**, new user registrations automatically generate a BlockIo wallet address for each active user.
+
+### Supported Currencies
+
+Each crypto currency linked to BlockIo has a `CryptoAssetSetting` record containing:
+
+| Field | Description |
+|---|---|
+| `currency_id` | The linked currency in the `currencies` table |
+| `crypto_provider_id` | The BlockIo provider record ID |
+| `network` | The blockchain network identifier |
+| `network_credentials` | API credentials stored as JSON (API key, PIN, etc.) |
+| `status` | `Active` or `Inactive` |
+
+### Configuring BlockIo API Credentials
+
+BlockIo credentials are stored in `CryptoAssetSetting.network_credentials`. Configuration is done through the provider's settings view rendered by the BlockIo module:
+
+<Steps>
+  <Step title="Navigate to the BlockIo provider">
+    Go to **Settings → Crypto Providers → BlockIo**.
+  </Step>
+  <Step title="Enter API credentials">
+    Provide the **API Key** for each supported network (Bitcoin, Litecoin, etc.) and the **Secret PIN** used for transaction signing.
+  </Step>
+  <Step title="Save and activate">
+    Save the credentials and enable the status toggle to make BlockIo active.
+  </Step>
+</Steps>
+
+<Warning>
+  Keep your BlockIo API key and secret PIN confidential. Anyone with access to these credentials can initiate withdrawals from your platform's BlockIo wallets.
+</Warning>
+
+## IPN (Instant Payment Notification) / Webhook Setup
+
+For crypto providers to notify DossPanels of incoming transactions, you must register a webhook URL (IPN endpoint) with the provider.
+
+The IPN URL for DossPanels follows the pattern:
+
+```
+https://yourdomain.com/api/ipn/{provider_alias}
+```
+
+**Steps to configure in BlockIo:**
+
+<Steps>
+  <Step title="Log in to your BlockIo account">
+    Visit `https://block.io` and sign in.
+  </Step>
+  <Step title="Go to the Notifications section">
+    Under each wallet (BTC, LTC, etc.), find the **Notifications** or **IPN** section.
+  </Step>
+  <Step title="Register the IPN URL">
+    Enter your DossPanels IPN endpoint URL and select the notification type (e.g., new incoming transaction).
+  </Step>
+  <Step title="Verify the endpoint">
+    Send a test notification from BlockIo to confirm your server is receiving and processing IPN calls correctly.
+  </Step>
+</Steps>
+
+<Note>
+  Ensure your server's SSL certificate is valid. BlockIo and most crypto providers will not deliver IPN notifications to endpoints with invalid or self-signed certificates.
+</Note>
+
+## Adding a New Crypto Provider
+
+New crypto providers are added as Laravel modules. The `CryptoProvider` model stores the provider name and alias. To register a new provider:
+
+1. Install the provider module via the addon manager (see [Modules](/admin/modules)).
+2. Run the module migrations to seed the `crypto_providers` table entry.
+3. Navigate to **Settings → Crypto Providers** to configure credentials.
+
+## Crypto Wallet Address Generation
+
+When a user registers with an active crypto provider, a wallet address is generated for each supported crypto network. If address generation fails (e.g., API key is invalid or rate-limited), the user creation is rolled back and an error is returned to the admin.

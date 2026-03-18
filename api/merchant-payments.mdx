@@ -1,0 +1,155 @@
+---
+title: "Merchant Payments"
+description: "Accept and process merchant payments via the DossPanels API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+DossPanels supports two merchant payment modes:
+- **Standard merchant** — The customer pays through the merchant's payment page
+- **Express merchant** — Fast checkout with predefined amounts via QR code
+
+Merchant payments are processed via QR code scanning. See the [QR Codes](/api/qr-codes) page for the QR code generation endpoints.
+
+## Standard merchant payment via QR code
+
+### Review payment
+
+```
+POST /api/perform-merchant-payment-qr-code-review
+```
+
+Validate and preview a merchant payment before confirmation.
+
+<ParamField body="qr_code" type="string" required>
+  QR code string scanned from the merchant's payment QR.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Customer's currency wallet to pay from.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Payment amount.
+</ParamField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="Review fields">
+    <ResponseField name="merchant_name" type="string">Merchant business name</ResponseField>
+    <ResponseField name="amount" type="string">Amount to pay</ResponseField>
+    <ResponseField name="charge_percentage" type="string">Fee percentage</ResponseField>
+    <ResponseField name="charge_fixed" type="string">Fixed fee</ResponseField>
+    <ResponseField name="total" type="string">Total deducted from customer wallet</ResponseField>
+    <ResponseField name="currency_code" type="string">Payment currency</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Submit payment
+
+```
+POST /api/perform-merchant-payment-qr-code-submit
+```
+
+<ParamField body="qr_code" type="string" required>
+  QR code string.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Customer wallet currency.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Payment amount.
+</ParamField>
+
+<ParamField body="pin" type="string">
+  Transaction PIN (if enabled).
+</ParamField>
+
+---
+
+## Express merchant payment via QR code
+
+Express merchant payments use a simplified flow where the merchant has a preset currency and optionally a preset amount.
+
+### Review (merchant currency + user wallets)
+
+```
+POST /api/perform-express-merchant-payment-qr-code-merchant-currency-user-wallets-review
+```
+
+<ParamField body="qr_code" type="string" required>
+  Express merchant QR code string.
+</ParamField>
+
+Returns the merchant's accepted currency and the user's available wallet balances.
+
+### Review (with amount)
+
+```
+POST /api/perform-express-merchant-payment-qr-code-merchant-amount-review
+```
+
+<ParamField body="qr_code" type="string" required>
+  Express merchant QR code string.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Selected customer wallet currency.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Payment amount.
+</ParamField>
+
+### Submit express payment
+
+```
+POST /api/perform-express-merchant-payment-qr-code-submit
+```
+
+<ParamField body="qr_code" type="string" required>
+  QR code string.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Customer wallet currency.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Payment amount.
+</ParamField>
+
+<ParamField body="pin" type="string">
+  Transaction PIN (if enabled).
+</ParamField>
+
+---
+
+## Send/Request money via QR code
+
+QR codes can also be used for peer-to-peer money operations:
+
+```
+POST /api/send-money-request-money-perform-qr-code-operation
+```
+
+<ParamField body="qr_code" type="string" required>
+  QR code string from the recipient's personal QR.
+</ParamField>
+
+<ParamField body="operation" type="string" required>
+  Either `"send"` or `"request"`.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Transaction amount.
+</ParamField>
+
+<ParamField body="currency_id" type="integer" required>
+  Currency ID.
+</ParamField>

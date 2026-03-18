@@ -1,0 +1,107 @@
+---
+title: "Roles & Permissions"
+description: "Manage admin roles, custom permission sets, and role assignments for admin and user accounts."
+---
+
+DossPanels uses a role-based access control (RBAC) system. Roles group a set of permissions and are assigned to users or admin accounts.
+
+## Role Types
+
+Roles belong to either the **Admin** user type or the **User** user type:
+
+| `user_type` | Scope |
+|---|---|
+| `Admin` | Controls what admin panel features an admin account can access |
+| `User` | Determines the account type and accessible features for end users |
+
+## Built-in User Roles
+
+The following roles ship with DossPanels and map directly to user types:
+
+| Role | `customer_type` / `name` | User `type` column |
+|---|---|---|
+| User | `user` | `user` |
+| Merchant | `merchant` | `merchant` |
+| Cashier | `cashier` | `cashier` |
+| Manager | `manager` | `manager` |
+| Inspector | — | `inspector` |
+| Doss | `Doss` | `doss` |
+| Agency | — | `agency` |
+
+Default roles are flagged with `is_default = 'Yes'`. There can be one default user role and one default merchant role at a time.
+
+## Viewing Admin Roles
+
+Navigate to **Settings → Roles** (`/admin/settings/roles`). The page lists all roles where `user_type = 'Admin'`.
+
+## Creating a Custom Admin Role
+
+<Steps>
+  <Step title="Open the Add Role form">
+    Click **Add Role** on the Roles list page.
+  </Step>
+  <Step title="Fill in role details">
+    | Field | Required | Description |
+    |---|---|---|
+    | Name | Yes | Internal identifier (must be unique per user_type) |
+    | Display Name | Yes | Human-readable label shown in the UI |
+    | Description | Yes | Explanation of what this role does |
+  </Step>
+  <Step title="Select permissions">
+    Permissions are grouped by functional area (e.g., Users, Merchants, Settings). Check the permissions to grant to this role. Each permission has a `group`, `display_name`, and `user_type`.
+  </Step>
+  <Step title="Save">
+    The role is created and each selected permission is stored in the `permission_role` pivot table.
+  </Step>
+</Steps>
+
+<Note>
+  Role name uniqueness is checked per `user_type`. The same name can exist for both `Admin` and `User` type roles without conflict. Use the duplicate-check endpoint (`/admin/settings/roles/duplicate-check`) to validate before saving.
+</Note>
+
+## Editing a Role
+
+Click the edit icon on any role. You can update the name, display name, description, and permission set. When permissions are saved:
+
+- Permissions that were previously assigned but are no longer selected are removed from `permission_role`.
+- Newly selected permissions are added to `permission_role` using `firstOrCreate` (no duplicates).
+
+## Deleting a Role
+
+<Warning>
+  Deleting a role also deletes all `permission_role` entries for that role. Any admin or user assigned this role will lose the associated permissions. Verify no active accounts depend on the role before deleting.
+</Warning>
+
+## Available Permissions
+
+Permissions are stored in the `permissions` table and grouped by functional area. Example permission names include:
+
+| Permission | Group |
+|---|---|
+| `view_user` | Users |
+| `add_user` | Users |
+| `edit_user` | Users |
+| `delete_role` | Users |
+| `view_merchant` | Merchants |
+| `add_merchant` | Merchants |
+
+The full list depends on which modules are installed. Module migrations add their own permission entries.
+
+## Assigning a Role to an Admin
+
+Admin role assignment is done from the admin profile edit page. Select the role from the dropdown.
+
+## Assigning a Role to a User
+
+When creating or editing a user from **Users → Edit**, select the desired role from the **Role** dropdown. The system updates both `users.role_id` and the `role_user` pivot table entry.
+
+## Permission Enforcement
+
+Permissions are enforced via the `permission` middleware applied to specific admin routes. For example:
+
+```php
+Route::get('users', 'UserController@index')->middleware(['permission:view_user']);
+Route::get('users/create', 'UserController@create')->middleware(['permission:add_user']);
+```
+
+An admin without the `view_user` permission will be blocked from accessing the user list.

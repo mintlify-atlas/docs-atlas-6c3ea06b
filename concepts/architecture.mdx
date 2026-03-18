@@ -1,0 +1,123 @@
+---
+title: "Architecture"
+description: "How DossPanels is structured: three tiers, the module system, and the key Laravel subsystems that power the platform."
+---
+
+## Three-tier structure
+
+DossPanels is a single Laravel 10 application that exposes three distinct entry points, each serving a different audience.
+
+<Columns cols={3}>
+  <Card title="User web app" icon="globe">
+    The customer-facing dashboard at `/`. Users manage wallets, initiate transfers, deposits, withdrawals, exchanges, and payment requests. Rendered with Blade templates and real-time updates via Pusher.
+  </Card>
+  <Card title="Admin panel" icon="shield">
+    The back-office interface at `/admin`. Admins manage users, approve transactions, configure currencies, set fees, manage roles, and access activity logs and reports.
+  </Card>
+  <Card title="REST API" icon="code">
+    Two versioned API route groups defined in `routes/api.php` and `routes/api_v2.php`. The API is consumed by mobile applications and third-party integrations. Authentication uses Laravel Passport (OAuth2) tokens.
+  </Card>
+</Columns>
+
+### Route organisation
+
+| File | Purpose |
+|------|---------|
+| `routes/web.php` | User-facing web routes |
+| `routes/admin.php` | Admin panel routes |
+| `routes/api.php` | Mobile/API routes (Passport-authenticated) |
+| `routes/api_v2.php` | Second API version |
+| `routes/channels.php` | Pusher broadcast channels |
+
+## Module system
+
+DossPanels extends its core functionality through a first-party module system located in the `Modules/` directory. Modules are autoloaded via the `Modules\` PSR-4 namespace declared in `composer.json`.
+
+```
+Modules/
+├── Addons/      # Optional feature add-ons (e.g. Referral, CryptoExchange)
+├── BlockIo/     # Block.io crypto asset wallet integration
+└── Upgrader/    # In-app system upgrade tooling
+```
+
+The `Modules/Addons/` directory contains sub-modules that can be individually enabled or disabled from the admin panel. Examples visible in the codebase include:
+
+- **Referral** — user referral codes and awards (`Modules\Referral\Entities\Referral`)
+- **CryptoExchange** — crypto-to-crypto exchange transactions (`Modules\CryptoExchange\Entities\CryptoExchange`)
+
+Module transaction type settings are merged into the global `getPaymoneySettings()` helper at runtime.
+
+## Key Laravel components
+
+### Authentication
+
+DossPanels uses two authentication guards simultaneously:
+
+- **Laravel Passport** — OAuth2 for the REST API. The `User` model uses the `HasApiTokens` trait from Passport. Personal access tokens are issued to mobile clients.
+- **Laravel Sanctum** — SPA token authentication, available as a lighter alternative for web-based API calls.
+- **Session-based auth** — Used for the web dashboard and admin panel, guarded by Laravel's built-in session guard.
+
+### Events, listeners, and notifications
+
+Transaction completion triggers in-app and push notifications. The notification system is built on:
+
+- `App\Models\Notification` — stores in-app notifications persisted to the `notifications` table.
+- `App\Models\NotificationType` and `App\Models\NotificationSetting` — control which events generate notifications per user.
+- **Firebase push** (`kreait/firebase-php`) — sends push notifications to mobile devices using FCM tokens stored in `users.fcm_last_login_device_token`.
+- **Pusher** (`pusher/pusher-php-server`) — broadcasts real-time events to the browser dashboard.
+
+### Jobs and queues
+
+Background work is dispatched as Laravel jobs:
+
+- `App\Jobs\SendOtpCode` — sends OTP verification codes via SMS (Twilio SDK).
+- `App\Jobs\NewSendOtpCode` — alternative OTP dispatch path.
+
+Jobs are routed to the configured queue driver (`QUEUE_CONNECTION` in `.env`). In production, use `redis` and run workers via Supervisor.
+
+### Activity logging
+
+All admin actions are recorded using `spatie/laravel-activitylog`. The `ActivityLog` model (`App\Models\ActivityLog`) stores a full audit trail linked to the `Admin` or `User` that performed the action.
+
+## Database structure overview
+
+The schema is defined across 79 migration files. The following tables form the financial core:
+
+| Table | Model | Purpose |
+|-------|-------|---------|
+| `users` | `User` | Customer accounts with type, role, KYC status, and FCM token |
+| `admins` | `Admin` | Back-office administrator accounts |
+| `roles` | `Role` | Named roles for both admin and user personas |
+| `permissions` | `Permission` | Granular action permissions scoped per role |
+| `permission_role` | `PermissionRole` | Many-to-many pivot between roles and permissions |
+| `currencies` | `Currency` | Fiat and crypto currency definitions with exchange rates |
+| `wallets` | `Wallet` | Per-user, per-currency balance ledger |
+| `transactions` | `Transaction` | Central ledger for all financial events |
+| `transaction_types` | `TransactionType` | Enum-like table defining the 12 transaction categories |
+| `fees_limits` | `FeesLimit` | Fee rules (percentage + fixed) per transaction type and currency |
+| `deposits` | `Deposit` | Deposit request details |
+| `withdrawals` | `Withdrawal` | Withdrawal request details |
+| `transfers` | `Transfer` | Peer-to-peer transfer details |
+| `currency_exchanges` | `CurrencyExchange` | Currency exchange records |
+| `request_payments` | `RequestPayment` | Payment request details |
+| `merchants` | `Merchant` | Merchant profiles |
+| `merchant_payments` | `MerchantPayment` | Payment receipts tied to a merchant |
+
+### Transaction type bootstrapping
+
+Transaction types (e.g. `Deposit`, `Transferred`, `Withdrawal`) are stored in the `transaction_types` table and loaded as PHP constants at boot time by `App\Providers\AppServiceProvider`. This means the integer IDs for each type are available globally as named constants throughout the application (e.g. `Deposit`, `Transferred`, `Request_Sent`).
+
+<Info>
+  The `APP_INSTALL=true` environment variable must be set for the `AppServiceProvider` to bootstrap these constants. Without it, any code referencing transaction type constants will fail.
+</Info>
+
+## Helper system
+
+DossPanels registers four global helper files via Composer's `files` autoload:
+
+| File | Purpose |
+|------|------|
+| `app/helpers/helpers.php` | Financial calculations, transaction lookup, notification helpers, and `getPaymoneySettings()` |
+| `app/helpers/files.php` | File upload and storage utilities |
+| `app/helpers/modules.php` | Module discovery and configuration |
+| `app/helpers/strings.php` | String formatting utilities |

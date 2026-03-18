@@ -1,0 +1,100 @@
+---
+title: "Admin Dashboard"
+description: "Overview of the DossPanels admin dashboard, key metrics, and how to access the admin panel."
+---
+
+The admin dashboard is the central control hub for DossPanels. It gives you an at-a-glance view of platform health, financial activity, and system alerts.
+
+## Accessing the Admin Panel
+
+<Steps>
+  <Step title="Navigate to the admin URL">
+    Open your browser and go to `/admin`. You will be redirected to the admin login page.
+  </Step>
+  <Step title="Enter your credentials">
+    Enter your administrator email and password. If OTP (two-factor) verification is enabled on the account, you will be prompted to enter a code sent to your email or phone.
+  </Step>
+  <Step title="Complete OTP verification (if enabled)">
+    Enter the one-time password sent to your registered contact. Use the **Resend OTP** link if needed. Upon successful verification, you land on the dashboard.
+  </Step>
+</Steps>
+
+<Note>
+  Forget your password? Use the **Forget Password** link on the login page. A reset link will be emailed to your registered admin address.
+</Note>
+
+## Dashboard Overview
+
+The dashboard is broken into several sections:
+
+### Summary Metrics
+
+The top row shows counters for the current month compared to all-time totals:
+
+| Metric | Description |
+|---|---|
+| Total Users | All registered users of type `user` or `cashier` |
+| New Users This Month | Users who registered in the current calendar month |
+| Total Merchants | All users of type `merchant` |
+| New Merchants This Month | Merchants who registered this month |
+| Total Tickets | All open and closed support tickets |
+| Total Disputes | All payment disputes raised across the platform |
+| Distribution Programmes | All users of type `doss` |
+
+### Weekly and Monthly Revenue Breakdown
+
+The dashboard displays revenue, deposits, withdrawals, and transfers for four time windows — **this week**, **last week**, **this month**, and **last month**. For each window, the system calculates:
+
+- **Total revenue** collected in the period
+- **Total deposits**, with a percentage share of revenue
+- **Total withdrawals**, with a percentage share of revenue
+- **Total transfers**, with a percentage share of revenue
+
+### 30-Day Activity Charts
+
+Three line charts plot the last 30 days of activity on a single graph:
+
+- **Deposits** — inbound funds added by users
+- **Withdrawals** — outbound funds requested by users
+- **Transfers** — peer-to-peer money movements
+
+Hover over any point on the chart to see the exact figure for that day.
+
+### Wallet Balances
+
+The **Wallet Balances** section aggregates all user wallet balances across every active currency, giving you a real-time view of funds held on the platform.
+
+### Currency Exchange Widget
+
+A quick exchange rate calculator lets you convert between any two active currencies using the stored exchange rates. Select the source and target currencies, enter an amount, and the converted value updates instantly.
+
+### Latest Tickets and Disputes
+
+The bottom of the dashboard shows the most recently created support tickets and payment disputes so that staff can respond quickly without navigating away.
+
+## Language Switching
+
+Admins can switch the admin panel language at any time using the language selector in the top navigation bar. The selection is stored in the session and applies only to the current admin user.
+
+## Quick Navigation
+
+<CardGroup cols={2}>
+  <Card title="User Management" icon="users" href="/admin/user-management">
+    View, search, create, and edit users. Approve KYC documents and manage user status.
+  </Card>
+  <Card title="Merchant Management" icon="store" href="/admin/merchant-management">
+    Manage merchant accounts, cashiers, groups, and per-merchant fees.
+  </Card>
+  <Card title="Currencies" icon="coins" href="/admin/currencies">
+    Add fiat and crypto currencies, set exchange rates, and control wallet creation.
+  </Card>
+  <Card title="Fees & Limits" icon="sliders" href="/admin/fees-limits">
+    Configure percentage and fixed fees, and set min/max transaction limits per currency and payment method.
+  </Card>
+  <Card title="Payment Methods" icon="credit-card" href="/admin/payment-methods">
+    Enable Stripe, PayPal, Bank, and CoinPayments. Store API keys and bank details.
+  </Card>
+  <Card title="Activity Logs" icon="list" href="/admin/activity-logs">
+    Monitor admin and user login activity. Filter and export logs.
+  </Card>
+</CardGroup>

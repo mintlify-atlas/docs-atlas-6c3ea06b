@@ -1,0 +1,124 @@
+---
+title: "Disputes"
+description: "Raise and manage disputes for transactions you believe are incorrect or unauthorized."
+---
+
+The Disputes module lets you formally challenge a transaction you believe is erroneous, fraudulent, or otherwise problematic. Both parties to the original transaction can participate in the dispute discussion, and an administrator mediates the resolution.
+
+## When to raise a dispute
+
+Raise a dispute if:
+
+- You sent money and the goods or services were not received.
+- An unauthorized transfer appeared on your account.
+- You received an incorrect amount.
+- A merchant payment was processed but the order was not fulfilled.
+
+<Warning>
+Disputes should only be raised for genuine issues. Misuse of the dispute process may result in account restrictions.
+</Warning>
+
+## Opening a dispute
+
+<Steps>
+  <Step title="Find the transaction">
+    Go to your transaction list or dashboard and locate the transaction you want to dispute.
+  </Step>
+
+  <Step title="Click Raise Dispute">
+    On the transaction detail page, click the **Raise Dispute** button. This opens the dispute creation form at `/dispute/add/{transaction_id}`.
+  </Step>
+
+  <Step title="Fill in the dispute form">
+    Complete all required fields:
+
+    | Field | Description |
+    |---|---|
+    | Title | Short summary of the issue |
+    | Reason | Select from the pre-configured dispute reasons |
+    | Description | Detailed explanation of the problem |
+
+    The `claimant_id` (you) and `defendant_id` (other party) and `transaction_id` are set automatically from the transaction context.
+  </Step>
+
+  <Step title="Submit the dispute">
+    Click **Submit**. A dispute record is created with `status = 'Open'` and a unique code in the format `DIS-XXXXXX`.
+
+    Email notifications are sent to:
+    - The **defendant** (the other party in the transaction)
+    - The **platform administrator**
+
+    via `OpenDisputeMailService`.
+  </Step>
+</Steps>
+
+<Note>
+Only one dispute can be raised per transaction. If a dispute already exists for the transaction, you will see the error: *"A dispute already exists for this payment."*
+</Note>
+
+## Dispute statuses
+
+| Status | Meaning |
+|---|---|
+| `Open` | Dispute is active; discussion is ongoing |
+| `Resolved` | Dispute has been closed with a decision |
+| `Closed` | Dispute ended without further action |
+
+## Participating in the dispute discussion
+
+Both the claimant and the defendant can add messages and attach evidence files to the dispute thread.
+
+<Steps>
+  <Step title="Open the dispute">
+    From **Disputes** (`/disputes`), click on a dispute to open the discussion view.
+  </Step>
+
+  <Step title="Add a reply">
+    Type your message in the reply box. You can also attach a supporting file (image or document). Accepted file types follow the platform's configured file extension rules.
+  </Step>
+
+  <Step title="Submit the reply">
+    Click **Send**. Your reply is saved as a `DisputeDiscussion` entry with `type = 'User'`. The other party receives an email notification via `DisputeReplyMailService`.
+  </Step>
+</Steps>
+
+<Note>
+Discussion is only possible while the dispute has `status = 'Open'`. If the dispute is resolved or closed, the message *"Dispute discussion already ended."* is shown.
+</Note>
+
+## Dispute evidence
+
+You can upload supporting files to strengthen your case:
+
+- Receipts, screenshots, or photos
+- Files are stored in `uploads/files/`
+- Download links are provided to all parties and the admin in the discussion thread
+
+## Administrator resolution
+
+The platform administrator reviews the dispute thread, all uploaded evidence, and any messages from both parties. The admin can:
+
+- Update the dispute `status` to `Resolved` or `Closed`.
+- Declare a `winner_id` if the dispute warrants a financial decision.
+- Manually adjust wallet balances if required.
+
+## Viewing your disputes
+
+All disputes where you are the claimant or defendant are listed at `/disputes`. You can filter by:
+
+- **Status**: Open, Resolved, Closed, or All
+- **Date range**: from/to date filters
+
+## Frequently asked questions
+
+<Accordion title="How long does dispute resolution take?">
+Resolution time depends on the complexity of the case and administrator availability. Keep the discussion thread updated with relevant information to speed up the process.
+</Accordion>
+
+<Accordion title="Can I close a dispute I opened?">
+Currently only administrators can change the dispute status. If you wish to withdraw a dispute, contact support with your dispute code (e.g. `DIS-XXXXXX`).
+</Accordion>
+
+<Accordion title="What happens after the dispute is resolved?">
+If a financial adjustment is warranted, the administrator makes the necessary wallet balance corrections manually. You will receive an email notification with the outcome.
+</Accordion>

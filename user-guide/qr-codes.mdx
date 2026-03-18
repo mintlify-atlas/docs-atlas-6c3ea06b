@@ -1,0 +1,88 @@
+---
+title: "QR Codes"
+description: "Use your personal QR code to receive payments instantly, or scan another user's QR code to pay them."
+---
+
+Every DossPanel account has a unique QR code automatically generated at registration. QR codes let users and cashiers receive payments without sharing their email or phone number.
+
+## Your personal QR code
+
+Your QR code is created automatically when you register. It encodes an encrypted string containing your account type, email, and phone number. The encoded payload is used by the platform to identify you as the payment recipient.
+
+- **User QR codes** have `object_type = 'user'`
+- **Cashier QR codes** have `object_type = 'cashier'`
+
+You can view your QR code on the **Dashboard** and on the **Profile** page.
+
+## How QR codes are generated
+
+When your account is created, the `QrCode::createUserQrCode($user)` method:
+
+1. Generates a unique encrypted secret: `convert_string('encrypt', 'user-{email}-{phone}-{random}')` using a random 6-character suffix.
+2. Saves the QR code record to the `qr_codes` table with `status = 'Active'`.
+3. Renders the QR code image and saves it as a `.jpg` file in the `user_qrcode` directory.
+
+## Receiving payments via QR code
+
+<Steps>
+  <Step title="Display your QR code">
+    Open your **Dashboard** or **Profile** and show the QR code image on screen, or print it.
+  </Step>
+
+  <Step title="Let the payer scan it">
+    The payer opens the DossPanel mobile app or payment screen and scans your QR code using their device camera.
+  </Step>
+
+  <Step title="Payer confirms and sends">
+    The app decodes the QR secret, identifies your account, pre-fills the payment form with your details, and the payer enters an amount and confirms the transfer.
+  </Step>
+
+  <Step title="Payment received">
+    Funds are credited to your wallet and you receive a notification.
+  </Step>
+</Steps>
+
+## Scanning a QR code to pay
+
+<Steps>
+  <Step title="Open the QR scanner">
+    In the DossPanel app, tap the QR scan button on the dashboard or payment screen.
+  </Step>
+
+  <Step title="Point at the recipient's QR code">
+    Align the camera with the other user's or cashier's QR code.
+  </Step>
+
+  <Step title="Review pre-filled details">
+    The recipient's name and account are loaded automatically. Enter the amount you want to send.
+  </Step>
+
+  <Step title="Confirm payment">
+    Confirm with your PIN. The transfer is processed instantly.
+  </Step>
+</Steps>
+
+## Regenerating your QR code
+
+If your QR code is compromised, you can regenerate it. The `QrCode::updateQrCode($user)` method:
+
+1. Sets the existing active QR code to `status = 'Inactive'`.
+2. Creates a new QR code with a fresh encrypted secret.
+3. Generates and saves a new QR image.
+
+After regeneration, the old QR code no longer works for payments.
+
+## QR code management via API
+
+The `QrCodeController` in the API layer provides endpoints for retrieving and managing QR codes programmatically. This is used primarily by the DossPanel mobile applications.
+
+## Static vs dynamic QR codes
+
+| Type | Description |
+|---|---|
+| Static (personal) | Encodes your identity only; payer enters the amount |
+| Dynamic (deposit QR) | Encodes a specific amount; used by the `DepositQrCode` model for preset deposit flows |
+
+<Note>
+Always use the latest version of your QR code image. If you have recently regenerated it, update any printed copies or saved screenshots.
+</Note>

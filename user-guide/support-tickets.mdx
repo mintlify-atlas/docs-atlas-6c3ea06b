@@ -1,0 +1,116 @@
+---
+title: "Support Tickets"
+description: "Submit a support ticket to get help from the DossPanel support team."
+---
+
+The Support Tickets module lets you reach the DossPanel support team directly from within the platform. You can describe your issue, attach files, receive replies, and track the status of your request.
+
+## Creating a support ticket
+
+<Steps>
+  <Step title="Open Support Tickets">
+    Navigate to **Support Tickets** in the menu or go to `/tickets`.
+  </Step>
+
+  <Step title="Click New Ticket">
+    Click the **New Ticket** button to open the ticket creation form at `/tickets/create`.
+  </Step>
+
+  <Step title="Enter a subject">
+    Write a clear, concise subject line that summarizes your issue (e.g. *"Unable to complete withdrawal — bank details rejected"*).
+  </Step>
+
+  <Step title="Describe your issue">
+    In the **Message** field, provide a detailed description of the problem. Include:
+    - What you were trying to do
+    - What happened instead
+    - Any error messages you saw
+    - Transaction IDs or reference numbers (if applicable)
+  </Step>
+
+  <Step title="Set priority">
+    Choose a priority level for your ticket. Priority options are configured by the administrator.
+  </Step>
+
+  <Step title="Submit the ticket">
+    Click **Submit**. The ticket is created with:
+    - A unique code in the format `TCKT-XXXXXXXX`
+    - `ticket_status_id = 1` (Open)
+    - Assigned to the primary administrator
+
+    An email notification is sent to the admin via `NewTicketMailService`.
+  </Step>
+
+  <Step title="View your ticket">
+    You are redirected to the ticket reply page where you can see your message and wait for a response.
+  </Step>
+</Steps>
+
+## Ticket statuses
+
+| Status | Meaning |
+|---|---|
+| Open | Ticket received; awaiting or in active support |
+| Pending | Waiting for your response or additional information |
+| Resolved | Issue addressed; ticket closed |
+| Closed | Ticket closed without further action |
+
+Statuses are defined in the `ticket_statuses` table and are configurable by the administrator.
+
+## Replying to a ticket
+
+<Steps>
+  <Step title="Open your ticket">
+    From the **Tickets** list (`/tickets`), click on a ticket to open the reply thread.
+  </Step>
+
+  <Step title="Write your reply">
+    Add a message in the reply box. You can provide additional details, answer questions from the support team, or update the status of the issue.
+  </Step>
+
+  <Step title="Attach a file (optional)">
+    Attach a screenshot or document to support your message. Files are validated by type and stored in `uploads/ticketFile/`. Accepted types follow the platform's file extension configuration (type group 1).
+  </Step>
+
+  <Step title="Send the reply">
+    Click **Send Reply**. Your reply is saved as a `TicketReply` with `user_type = 'user'`. The admin receives an email notification via `TicketReplyMailService`.
+  </Step>
+</Steps>
+
+## Viewing all your tickets
+
+The ticket list at `/tickets` shows all tickets you have created. You can filter by status:
+
+- Open
+- Pending
+- Resolved
+- Closed
+- All
+
+Each row shows the ticket code, subject, status, priority, and date.
+
+## Downloading attached files
+
+If the support team attaches a file to a reply, you can download it directly from the ticket thread. Your own uploaded files are also downloadable via the `/tickets/download/{filename}` endpoint.
+
+## Closing a ticket
+
+Tickets can be closed by the administrator when the issue is resolved. You can also request closure by replying to your ticket and asking for it to be marked as resolved.
+
+<Info>
+Keep your ticket updated with any new information. The faster the support team gets context, the faster your issue is resolved. Reference any relevant transaction IDs or dispute codes in your messages.
+</Info>
+
+## Frequently asked questions
+
+<Accordion title="How long does it take to get a reply?">
+Response times vary by priority and support queue volume. High-priority tickets are typically addressed faster. You will receive an email notification when the support team replies.
+</Accordion>
+
+<Accordion title="Can I open multiple tickets for the same issue?">
+It is best to use a single ticket and add replies as you have more information. Opening duplicate tickets can slow down resolution.
+</Accordion>
+
+<Accordion title="I accidentally closed my ticket but the issue is not resolved">
+Open a new ticket referencing the original ticket code (e.g. `TCKT-XXXXXXXX`) and explain that the issue was not resolved. The support team can review the original thread.
+</Accordion>

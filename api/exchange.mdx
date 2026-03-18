@@ -1,0 +1,157 @@
+---
+title: "Exchange"
+description: "Exchange currencies between user wallets via the DossPanels API."
+---
+
+<Note>
+All endpoints on this page require `Authorization: Bearer {token}` header.
+</Note>
+
+## Overview
+
+Currency exchange lets users convert funds between any two wallets they hold. The process:
+1. Get available wallets
+2. Select source and destination currencies
+3. Review the exchange rate and fees
+4. Confirm the exchange
+
+## Step 1 — Get user wallets
+
+```
+GET /api/get-User-Wallets-WithActive-HasTransaction
+```
+
+Returns all wallets for the authenticated user that have active currencies and at least one transaction.
+
+<ResponseField name="data" type="array">
+  Array of wallet objects with `id`, `currency_id`, `currency_code`, `balance`.
+</ResponseField>
+
+## Step 2 — Get destination wallets
+
+```
+POST /api/getWalletsExceptSelectedFromWallet
+```
+
+Returns wallets the user can exchange into, excluding the selected source wallet.
+
+<ParamField body="from_wallet_id" type="integer" required>
+  Source wallet ID to exclude from results.
+</ParamField>
+
+## Step 3 — Get balances
+
+```
+POST /api/getBalanceOfFromAndToWallet
+```
+
+<ParamField body="from_currency_id" type="integer" required>
+  Source currency ID.
+</ParamField>
+
+<ParamField body="to_currency_id" type="integer" required>
+  Destination currency ID.
+</ParamField>
+
+Returns current balances for both wallets.
+
+## Step 4 — Get exchange rate
+
+```
+POST /api/get-currencies-exchange-rate
+```
+
+<ParamField body="from_currency_id" type="integer" required>
+  Source currency ID.
+</ParamField>
+
+<ParamField body="to_currency_id" type="integer" required>
+  Destination currency ID.
+</ParamField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="Rate fields">
+    <ResponseField name="from_currency_rate" type="string">Exchange rate of source currency</ResponseField>
+    <ResponseField name="to_currency_rate" type="string">Exchange rate of destination currency</ResponseField>
+    <ResponseField name="exchange_rate" type="string">Calculated rate for this pair</ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Step 5 — Review exchange details
+
+```
+POST /api/review-exchange-details
+```
+
+<ParamField body="from_currency_id" type="integer" required>
+  Source currency ID.
+</ParamField>
+
+<ParamField body="to_currency_id" type="integer" required>
+  Destination currency ID.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to exchange (in source currency).
+</ParamField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="Exchange preview">
+    <ResponseField name="amount" type="string">Input amount</ResponseField>
+    <ResponseField name="charge_percentage" type="string">Percentage fee</ResponseField>
+    <ResponseField name="charge_fixed" type="string">Fixed fee</ResponseField>
+    <ResponseField name="total" type="string">Total deducted from source wallet</ResponseField>
+    <ResponseField name="converted_amount" type="string">Amount credited to destination wallet</ResponseField>
+    <ResponseField name="exchange_rate" type="string">Rate used</ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Step 6 — Confirm exchange
+
+```
+POST /api/exchange-money-complete
+```
+
+<ParamField body="from_currency_id" type="integer" required>
+  Source currency ID.
+</ParamField>
+
+<ParamField body="to_currency_id" type="integer" required>
+  Destination currency ID.
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Amount to exchange.
+</ParamField>
+
+<ParamField body="pin" type="string">
+  Transaction PIN (if enabled).
+</ParamField>
+
+### Response
+
+<ResponseField name="status" type="integer">`200` on success</ResponseField>
+<ResponseField name="message" type="string">Confirmation message</ResponseField>
+<ResponseField name="data" type="object">
+  Exchange transaction object with UUID, converted amount, and both currency codes.
+</ResponseField>
+
+### Example
+
+```bash cURL
+# Review before confirming
+curl -X POST https://yourdomain.com/api/review-exchange-details \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"from_currency_id": 1, "to_currency_id": 2, "amount": 100}'
+
+# Confirm the exchange
+curl -X POST https://yourdomain.com/api/exchange-money-complete \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"from_currency_id": 1, "to_currency_id": 2, "amount": 100}'
+```
+
+<Tip>
+Always call `review-exchange-details` before `exchange-money-complete` so the user can confirm the rate and fees before the exchange is processed.
+</Tip>
