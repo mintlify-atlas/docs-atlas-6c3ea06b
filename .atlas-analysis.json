@@ -1,0 +1,126 @@
+{
+  "projectType": "saas",
+  "projectName": "DossPanels",
+  "projectDescription": "A full-featured Laravel-based fintech SaaS platform for digital payments, money transfers, merchant management, multi-currency wallets, and crypto transactions with a comprehensive admin panel and mobile API.",
+  "theme": "linden",
+  "primaryColor": "#040404",
+  "lightColor": "#ef370f",
+  "darkColor": "#f79d72",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Overview",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "installation"]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": ["concepts/architecture", "concepts/user-roles", "concepts/wallets-currencies", "concepts/transaction-types"]
+          }
+        ]
+      },
+      {
+        "tab": "User Guide",
+        "groups": [
+          {
+            "group": "Account Management",
+            "pages": ["user-guide/registration", "user-guide/profile", "user-guide/kyc-verification", "user-guide/two-factor-auth"]
+          },
+          {
+            "group": "Payments & Transfers",
+            "pages": ["user-guide/send-money", "user-guide/request-money", "user-guide/deposit", "user-guide/withdrawal", "user-guide/exchange-currency"]
+          },
+          {
+            "group": "Merchant Features",
+            "pages": ["user-guide/merchant-payments", "user-guide/qr-codes", "user-guide/invoices"]
+          },
+          {
+            "group": "Other Features",
+            "pages": ["user-guide/disputes", "user-guide/support-tickets", "user-guide/notifications"]
+          }
+        ]
+      },
+      {
+        "tab": "Admin Guide",
+        "groups": [
+          {
+            "group": "Admin Panel",
+            "pages": ["admin/dashboard", "admin/user-management", "admin/merchant-management"]
+          },
+          {
+            "group": "Finance & Settings",
+            "pages": ["admin/currencies", "admin/fees-limits", "admin/payment-methods", "admin/crypto-providers"]
+          },
+          {
+            "group": "System",
+            "pages": ["admin/roles-permissions", "admin/modules", "admin/email-sms-templates", "admin/activity-logs", "admin/backups"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": ["api/authentication", "api/registration"]
+          },
+          {
+            "group": "Profile",
+            "pages": ["api/profile"]
+          },
+          {
+            "group": "Transactions",
+            "pages": ["api/transactions", "api/send-money", "api/request-money", "api/deposit", "api/withdrawal", "api/exchange"]
+          },
+          {
+            "group": "Merchant",
+            "pages": ["api/merchant-payments", "api/qr-codes"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-currency digital wallets with real-time balance tracking",
+    "Money transfers (send, request, exchange) between users",
+    "Multiple deposit methods: bank, Stripe, PayPal, CoinPayments (crypto)",
+    "Withdrawal/payout system with configurable payout settings",
+    "Merchant payment processing with QR code and invoice generation",
+    "Comprehensive admin panel for user, merchant, and financial management",
+    "Role-based access control (RBAC) with granular permissions",
+    "KYC verification (identity and address proof)",
+    "Two-factor authentication (Google 2FA)",
+    "Firebase push notifications and real-time updates via Pusher",
+    "Dispute management system",
+    "Support ticket system",
+    "Addon/module system for extensibility",
+    "Mobile API with Laravel Passport OAuth2 authentication",
+    "Group-based bulk fund distribution",
+    "Twilio SMS and email notification support"
+  ],
+  "publicApiSurface": [
+    "POST /api/login",
+    "POST /api/registration",
+    "GET /api/get-user-profile",
+    "POST /api/update-user-profile",
+    "GET /api/activityall",
+    "GET /api/get-deposit-currency-list",
+    "POST /api/deposit/bank-payment-store",
+    "POST /api/deposit/stripe-make-payment",
+    "POST /api/deposit/paypal-payment-store",
+    "POST /api/deposit/coinpayments-payment-store",
+    "POST /api/send-money",
+    "POST /api/request-money",
+    "POST /api/accept-request-money",
+    "POST /api/exchange-money",
+    "POST /api/payout-money",
+    "GET /api/payout-setting",
+    "POST /api/add-withdraw-setting",
+    "GET /api/get-merchant-payments",
+    "GET /api/qr-code",
+    "GET /api/available-balance",
+    "GET /api/transaction-details"
+  ]
+}
